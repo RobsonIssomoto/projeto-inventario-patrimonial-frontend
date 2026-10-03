@@ -10,6 +10,7 @@ class PatrimonioCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 2.0,
+      color: Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: (Padding(
@@ -91,7 +92,10 @@ class PatrimonioCard extends StatelessWidget {
                   const SizedBox(height: 8.0),
                   Row(
                     children: [
-                      const Icon(Icons.door_sliding, color: Colors.grey),
+                      const Icon(
+                        Icons.door_sliding_outlined,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(width: 8.0),
                       Text(
                         patrimonio.sala,
