@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_card.dart';
+import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 
 void main() {
   runApp(const MyApp());
@@ -9,80 +11,59 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final listaPatrimonios = Patrimonio.patrimonioMock;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: "Página Inicial - APP Inventário Patrimônial",
       home: Scaffold(
-        appBar: AppBar(title: const Text('Inventário Patrimonial')),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 40.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Image.asset(
-                    'assets/imagens/prefeitura-de-atibaia-preto.png',
-                    height: 120,
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                const Text(
-                  'Log in',
+        appBar: AppBar(
+          title: const Text('Início'),
+          backgroundColor: const Color(0xFF2563EB),
+          foregroundColor: Colors.white,
+        ),
+        body: ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          itemCount: listaPatrimonios.length,
+          itemBuilder: (context, index) {
+            final item = listaPatrimonios[index];
+            return PatrimonioCard(patrimonio: item);
+          },
+        ),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              UserAccountsDrawerHeader(
+                decoration: BoxDecoration(color: Color(0xFF2563EB)),
+                accountName: Text(
+                  "Nome do usuário",
                   style: TextStyle(
-                    fontSize: 32,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                 ),
-
-                const SizedBox(height: 24),
-
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Digite seu e-mail',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
+                accountEmail: Text(
+                  "usuario@email.com",
+                  style: TextStyle(color: Colors.white70),
                 ),
-
-                const SizedBox(height: 16),
-
-                TextField(
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Senha',
-                    hintText: 'Digite sua senha',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.visibility_off),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                ElevatedButton(
-                  onPressed: () {
-                    //ação que vai acontecer ao clicar no botão
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[700],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                currentAccountPicture: CircleAvatar(
+                  child: Text(
+                    "U",
+                    style: TextStyle(
+                      color: Color(0xFF2563EB),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
                     ),
                   ),
-                  child: const Text(
-                    'Entrar',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
                 ),
-              ],
-            ),
+              ),
+              ListTile(
+                leading: Icon(Icons.home),
+                title: Text("Início"),
+                onTap: () {},
+              ),
+            ],
           ),
         ),
       ),
