@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/home_page.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Página Inicial - APP Inventário Patrimônial",
-      home: HomePage(), // Chama a página estruturada
+      home: LoginPage(), // Chama a página estruturada
     );
   }
 }
