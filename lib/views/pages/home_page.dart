@@ -37,15 +37,15 @@ class HomePage extends StatelessWidget {
       //  CONTEÚDO PRINCIPAL
       body: Column(
         children: [
-          // Área Superior Fixa (Scanner, Busca e Filtros)
+          // ÁREA SUPERIOR FIXA
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                //  BOTÃO ESCANEAR PATRIMÔNIO
+                // Botão escanear
                 ElevatedButton(
                   onPressed: () {
-                    // Lógica para abrir a câmera / scanner
+                    // Abrir scanner
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
@@ -64,8 +64,8 @@ class HomePage extends StatelessWidget {
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
+                        children: const [
+                          Text(
                             'Escanear Patrimônio',
                             style: TextStyle(
                               fontSize: 16,
@@ -74,7 +74,7 @@ class HomePage extends StatelessWidget {
                           ),
                           Text(
                             'Aponte para o código de barras ou qrcode',
-                            style: TextStyle(fontSize: 12, color: Colors.white),
+                            style: TextStyle(fontSize: 12),
                           ),
                         ],
                       ),
@@ -85,7 +85,7 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16.0),
 
-                //  CAMPO DE BUSCA E BOTÃO FILTRAR
+                // Busca + botão filtro
                 Row(
                   children: [
                     Expanded(
@@ -122,7 +122,7 @@ class HomePage extends StatelessWidget {
                       child: IconButton(
                         icon: const Icon(Icons.tune, color: Colors.black54),
                         onPressed: () {
-                          // Ação do Filtro Avançado
+                          _abrirFiltro(context);
                         },
                       ),
                     ),
@@ -130,7 +130,7 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16.0),
 
-                //  LABELS DE CONTAGEM E ORDENAÇÃO
+                // Contagem e ordenação
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -164,7 +164,7 @@ class HomePage extends StatelessWidget {
             ),
           ),
 
-          //  LISTA ROLÁVEL DE PATRIMÔNIOS
+          // LISTA ROLÁVEL
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.only(bottom: 16.0),
@@ -176,7 +176,6 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-
       //   DRAWER
       drawer: Drawer(
         child: ListView(
@@ -237,6 +236,101 @@ class HomePage extends StatelessWidget {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
+    );
+  }
+
+  void _abrirFiltro(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Filtrar patrimônios',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Sala',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'lab_informatica',
+                    child: Text('Lab. Informática'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'secretaria',
+                    child: Text('Secretaria'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'lab_redes',
+                    child: Text('Lab. Redes'),
+                  ),
+                ],
+                onChanged: (value) {},
+              ),
+              const SizedBox(height: 16),
+
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Status',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'em_uso', child: Text('Em uso')),
+                  DropdownMenuItem(
+                    value: 'disponivel',
+                    child: Text('Disponível'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'manutencao',
+                    child: Text('Em manutenção'),
+                  ),
+                ],
+                onChanged: (value) {},
+              ),
+              const SizedBox(height: 20),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Limpar'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Aplicar filtros na lista
+                      },
+                      child: const Text('Aplicar'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
