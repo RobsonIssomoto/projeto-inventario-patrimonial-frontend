@@ -7,6 +7,7 @@ class Patrimonio {
   final String status;
   final String estadoConservacao;
   final String observacoes;
+  final String? imagem;
 
   Patrimonio({
     required this.numeroPatrimonio,
@@ -17,6 +18,7 @@ class Patrimonio {
     required this.status,
     required this.estadoConservacao,
     required this.observacoes,
+    this.imagem,
   });
 
   static List<Patrimonio> patrimonioMock = [
