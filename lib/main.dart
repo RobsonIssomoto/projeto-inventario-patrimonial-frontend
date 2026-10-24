@@ -16,9 +16,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Página Inicial - APP Inventário Patrimônial",
-      home: PatrimonioDetail(
-        patrimonio: Patrimonio.patrimonioMock[0],
-      ), // Chama a página estruturada
+      home: HomePage(),
+      // PatrimonioDetail(
+      //   patrimonio: Patrimonio.patrimonioMock[0],
+      // ), // Chama a página estruturada
     );
   }
 }

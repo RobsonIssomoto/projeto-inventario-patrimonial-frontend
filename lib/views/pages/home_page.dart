@@ -2,40 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_card.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
   @override
   Widget build(BuildContext context) {
     final todosPatrimonios = Patrimonio.patrimonioMock;
 
-    // Quantidade de itens a exibir na página inicial
+    // Define quantos serão exibidos na Home.
     final limiteExibicao = 3;
+
+    // Prepara a lista limitada.
     final listaExibida = todosPatrimonios.take(limiteExibicao).toList();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFEEF2F9),
-
-      // BARRA SUPERIOR
-      appBar: AppBar(
-        title: const Text('Início'),
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
-
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
-        ),
-      ),
-
-      //  CONTEÚDO PRINCIPAL
-      body: Column(
+    final _pages = [
+      //0 - Início
+      Column(
         children: [
           // ÁREA SUPERIOR FIXA
           Padding(
@@ -46,6 +34,11 @@ class HomePage extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     // Abrir scanner
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const ScannerPreviewPage(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
@@ -176,64 +169,66 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      //   DRAWER
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const UserAccountsDrawerHeader(
-              decoration: BoxDecoration(color: Color(0xFF2563EB)),
-              accountName: Text(
-                "Nome do usuário",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              accountEmail: Text(
-                "usuario@email.com",
-                style: TextStyle(color: Colors.white70),
-              ),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Text(
-                  "U",
-                  style: TextStyle(
-                    color: Color(0xFF2563EB),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                  ),
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text("Início"),
-              onTap: () {
-                Navigator.pop(context); // Fecha o menu ao clicar
-              },
-            ),
-          ],
-        ),
-      ),
+      const SizedBox.shrink(),
+      //2 - Inventário
+      const Center(child: Text('Conteúdo da página inventário')),
+      //3 - Perfil
+      const Center(child: Text('Conteúdo da página perfil')),
+    ];
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFEEF2F9),
+
+      // BARRA SUPERIOR
+      // appBar: AppBar(
+      //   title: const Text('Início'),
+      //   backgroundColor: const Color(0xFF2563EB),
+      //   foregroundColor: Colors.white,
+      // ),
+
+      //  CONTEÚDO PRINCIPAL
+      body: _pages[_selectedIndex],
 
       //  BARRA DE NAVEGAÇÃO INFERIOR
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF2563EB),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Início'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
+          // Scanner abre separado e não muda a aba atual.
+          if (index == 1) {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const ScannerPreviewPage(),
+              ),
+            );
+
+            return;
+          }
+
+          // Início, Inventário e Perfil trocam o body.
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Início',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.qr_code_outlined),
             label: 'Scanner',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
+          NavigationDestination(
+            icon: Icon(Icons.assignment_outlined),
+            selectedIcon: Icon(Icons.assignment),
             label: 'Inventário',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+          NavigationDestination(
+            icon: Icon(Icons.person_outlined),
+            selectedIcon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
         ],
       ),
     );
@@ -331,6 +326,47 @@ class HomePage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class ScannerPreviewPage extends StatelessWidget {
+  const ScannerPreviewPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: CircleAvatar(
+                  backgroundColor: Colors.white24,
+                  child: IconButton(
+                    tooltip: 'Voltar',
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+            const Expanded(
+              child: Center(
+                child: Text(
+                  'Área da câmera',
+                  style: TextStyle(color: Colors.white, fontSize: 20),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
