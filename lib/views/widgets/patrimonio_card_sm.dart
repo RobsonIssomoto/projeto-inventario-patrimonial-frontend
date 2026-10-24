@@ -66,7 +66,7 @@ class PatrimonioCardSm extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
 
             // Número e descrição
             Expanded(
@@ -75,8 +75,8 @@ class PatrimonioCardSm extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                      horizontal: 16,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFBFDBFE),
