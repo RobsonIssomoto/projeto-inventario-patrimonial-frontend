@@ -82,6 +82,21 @@ class PatrimonioValidationCard extends StatelessWidget {
               valorSelecionado: estadoSelecionado,
               onChanged: onEstadoChanged,
             ),
+            const SizedBox(height: 24),
+
+            Text(
+              'Observação',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              maxLines: 5,
+              keyboardType: TextInputType.multiline,
+              decoration: const InputDecoration(
+                hintText: 'Escreva alguma informação sobre o patrimônio....',
+                border: OutlineInputBorder(),
+              ),
+            ),
           ],
         ),
       ),
