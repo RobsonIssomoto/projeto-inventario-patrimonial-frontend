@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/home_page.dart';
+import 'package:projeto_inventario_patrimonial_frontend/viewmodels/login_viewmodel.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,6 +16,9 @@ class _LoginPageState extends State<LoginPage> {
 
   // Variável de estado para alternar a visibilidade da senha
   bool _senhaOculta = true;
+
+  final LoginViewModel _viewModel = LoginViewModel();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -36,100 +40,110 @@ class _LoginPageState extends State<LoginPage> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-              Center(
-                child: Image.asset(
-                  'assets/imagens/prefeitura-de-atibaia-preto.png',
-                  height: 120,
-                  errorBuilder: (context, error, stackTrace) {
-                    // Evita crash caso a imagem mude de pasta ou falte no asset
-                    return const Icon(
-                      Icons.business,
-                      size: 100,
-                      color: Color(0xFF2563EB),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 40),
-              const Text(
-                'Log in',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A8A),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Campo de Email
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Digite seu e-mail',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-
-              // Campo de Senha
-              TextField(
-                controller: _senhaController,
-                obscureText: _senhaOculta,
-                decoration: InputDecoration(
-                  labelText: 'Senha',
-                  hintText: 'Digite sua senha',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _senhaOculta ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _senhaOculta = !_senhaOculta;
-                      });
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+                Center(
+                  child: Image.asset(
+                    'assets/imagens/prefeitura-de-atibaia-preto.png',
+                    height: 120,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Evita crash caso a imagem mude de pasta ou falte no asset
+                      return const Icon(
+                        Icons.business,
+                        size: 100,
+                        color: Color(0xFF2563EB),
+                      );
                     },
                   ),
                 ),
-              ),
-              const SizedBox(height: 32),
-
-              // Botão Entrar
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 40),
+                const Text(
+                  'Log in',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E3A8A),
                   ),
-                  elevation: 2,
                 ),
-                child: const Text(
-                  'Entrar',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                const SizedBox(height: 24),
+
+                // Campo de Email
+                TextFormField(
+                  controller: _emailController,
+                  validator: _viewModel.validateEmail,
+                  decoration: InputDecoration(
+                    labelText: 'Digite seu e-mail',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                // Campo de Senha
+                TextFormField(
+                  controller: _senhaController,
+                  obscureText: _senhaOculta,
+                  validator: _viewModel.validatePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Senha',
+                    hintText: 'Digite sua senha',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _senhaOculta ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _senhaOculta = !_senhaOculta;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Botão Entrar
+                ElevatedButton(
+                  onPressed: () {
+                    final isValid = _formKey.currentState!.validate();
+                    if (isValid) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomePage(),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: const Text(
+                    'Entrar',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
