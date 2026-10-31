@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "519341529272",
+    "project_id": "inventario-patrimonial-c005e",
+    "storage_bucket": "inventario-patrimonial-c005e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:519341529272:android:c90b8ec1bd6461cda83c4d",
+        "android_client_info": {
+          "package_name": "com.example.projeto_inventario_patrimonial_frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPeSJ1bESGpwkKiDA-CrHHpAUeoOnBhbM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

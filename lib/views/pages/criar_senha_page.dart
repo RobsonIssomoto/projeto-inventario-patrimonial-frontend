@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/login_page.dart';
 
 class CriarSenhaPage extends StatefulWidget {
   final String? oobCode;
@@ -28,43 +30,91 @@ class _CriarSenhaPageState extends State<CriarSenhaPage> {
   }
 
   Future<void> _criarSenha() async {
-    final isValid = _formKey.currentState!.validate();
+    if (_carregando) return;
 
-    if (!isValid) return;
+    final codigo = widget.oobCode;
 
-    if (widget.oobCode == null || widget.oobCode!.isEmpty) {
+    if (codigo == null || codigo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Link inválido ou expirado.')),
+        const SnackBar(
+          content: Text(
+            'Link inválido ou expirado. Tente abrir o link novamente.',
+          ),
+        ),
       );
       return;
     }
+
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final novaSenha = _novaSenhaController.text.trim();
 
     setState(() {
       _carregando = true;
     });
 
     try {
-      //Incluir Firebase
-      //
-      // await FirebaseAuth.instance.confirmPasswordReset(
-      //   code: widget.oobCode!,
-      //   newPassword: _novaSenhaController.text.trim(),
-      // );
-
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Senha criada com sucesso.')),
+      await FirebaseAuth.instance.verifyPasswordResetCode(codigo);
+      await FirebaseAuth.instance.confirmPasswordReset(
+        code: codigo,
+        newPassword: novaSenha,
       );
 
-      Navigator.pop(context);
-    } catch (e) {
       if (!mounted) return;
 
+      _novaSenhaController.clear();
+      _confirmarSenhaController.clear();
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível criar a senha.')),
+        const SnackBar(
+          content: Text('Senha criada com sucesso. Faça Login para continuar.'),
+        ),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    } on FirebaseAuthException catch (erro) {
+      if (!mounted) return;
+
+      String mensagem;
+
+      switch (erro.code) {
+        case 'expired-action-code':
+          mensagem = 'Este link expirou. Solicite um novo link.';
+          break;
+
+        case 'invalid-action-code':
+          mensagem = 'Este link é inválido ou já foi utilizado.';
+          break;
+
+        case 'weak-password':
+          mensagem = 'A senha não atende aos requisitos de segurança.';
+          break;
+
+        case 'user-disabled':
+          mensagem = 'Esta conta está desativada. Entre em contato com o administrador.';
+          break;
+
+        case 'user-not-found':
+          mensagem = 'A conta associada a este link não está disponível.';
+          break;
+
+        case 'network-request-failed':
+          mensagem = 'Não foi possível conectar. Verifique sua conexão.';
+          break;
+
+        default:
+          mensagem = 'Não foi possível criar a senha. Tente novamente.';
+      }
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(mensagem)));
+    } catch (erro) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
+        ),
       );
     } finally {
       if (mounted) {
@@ -165,6 +215,9 @@ class _CriarSenhaPageState extends State<CriarSenhaPage> {
                     ),
                   ),
                   validator: (valor) {
+                    if (valor == null || valor.isEmpty) {
+                      return 'Confirme a nova senha.';
+                    }
                     if (valor != _novaSenhaController.text) {
                       return 'As senhas não coincidem.';
                     }
