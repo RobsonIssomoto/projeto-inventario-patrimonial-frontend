@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_card.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -172,19 +173,14 @@ class _HomePageState extends State<HomePage> {
       const SizedBox.shrink(),
       //2 - Inventário
       const Center(child: Text('Conteúdo da página inventário')),
+
       //3 - Perfil
-      const Center(child: Text('Conteúdo da página perfil')),
+      // const Center(child: Text('Conteúdo da página perfil')),
+      const ProfilePage(),
     ];
 
     return Scaffold(
       backgroundColor: const Color(0xFFEEF2F9),
-
-      // BARRA SUPERIOR
-      // appBar: AppBar(
-      //   title: const Text('Início'),
-      //   backgroundColor: const Color(0xFF2563EB),
-      //   foregroundColor: Colors.white,
-      // ),
 
       //  CONTEÚDO PRINCIPAL
       body: _pages[_selectedIndex],

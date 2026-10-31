@@ -31,12 +31,6 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEEF2F9),
-      appBar: AppBar(
-        title: const Text('Inventário Patrimonial'),
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
-        centerTitle: true,
-      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
