@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/home_page.dart';
 import 'package:projeto_inventario_patrimonial_frontend/viewmodels/login_viewmodel.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -111,13 +112,34 @@ class _LoginPageState extends State<LoginPage> {
 
                 // Botão Entrar
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final isValid = _formKey.currentState!.validate();
-                    if (isValid) {
+
+                    if (!isValid) return;
+
+                    try {
+                      await _viewModel.login(
+                        email: _emailController.text,
+                        senha: _senhaController.text,
+                      );
+                      final usuario = FirebaseAuth.instance.currentUser;
+                      final token = await usuario?.getIdToken();
+                      print('TOKEN: $token');
+
+                      if (!context.mounted) return;
+
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const HomePage(),
+                        ),
+                      );
+                    } catch (error) {
+                      if (!context.mounted) return;
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('E-mail ou senha inválidos.'),
                         ),
                       );
                     }

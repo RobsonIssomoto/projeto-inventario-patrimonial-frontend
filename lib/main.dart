@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Página Inicial - APP Inventário Patrimônial",
-      home: HomePage(),
+      home: LoginPage(),
       // const CriarSenhaPage(
       //   oobCode:
       // ),

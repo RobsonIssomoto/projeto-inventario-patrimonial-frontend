@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 class LoginViewModel {
   String? validateEmail(String? value) {
     final email = value?.trim() ?? '';
@@ -23,5 +25,20 @@ class LoginViewModel {
     }
 
     return null;
+  }
+
+  Future<User> login({required String email, required String senha}) async {
+    final credencial = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email.trim(),
+      password: senha,
+    );
+
+    final usuario = credencial.user;
+
+    if (usuario == null) {
+      throw Exception('Não foi possível autenticar o usuário.');
+    }
+
+    return usuario;
   }
 }
