@@ -122,9 +122,6 @@ class _LoginPageState extends State<LoginPage> {
                         email: _emailController.text,
                         senha: _senhaController.text,
                       );
-                      final usuario = FirebaseAuth.instance.currentUser;
-                      final token = await usuario?.getIdToken();
-                      print('TOKEN: $token');
 
                       if (!context.mounted) return;
 
