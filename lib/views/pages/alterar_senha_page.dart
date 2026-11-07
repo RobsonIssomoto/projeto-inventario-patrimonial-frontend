@@ -147,23 +147,31 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEEF2F9),
+      appBar: AppBar(
+        title: const Text('Alterar senha'),
+        backgroundColor: const Color(0xFFEEF2F9),
+        foregroundColor: const Color(0xFF1E3A8A),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+      ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Alterar senha',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E3A8A),
-                  ),
-                ),
-                const SizedBox(height: 24),
+                // const Text(
+                //   'Alterar senha',
+                //   style: TextStyle(
+                //     fontSize: 32,
+                //     fontWeight: FontWeight.bold,
+                //     color: Color(0xFF1E3A8A),
+                //   ),
+                // ),
+                // const SizedBox(height: 24),
                 TextFormField(
                   controller: _senhaAtualController,
                   obscureText: _senhaAtualOculta,

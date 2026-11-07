@@ -1,14 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:projeto_inventario_patrimonial_frontend/views/pages/login_page.dart';
-
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/alterar_senha_page.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/login_page.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  const ProfilePage({super.key, required this.onVoltar});
+
+  final VoidCallback onVoltar;
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -33,6 +35,8 @@ class _ProfilePageState extends State<ProfilePage> {
       final usuarioFirebase = FirebaseAuth.instance.currentUser;
 
       if (usuarioFirebase == null) {
+        if (!mounted) return;
+
         setState(() {
           carregando = false;
           erro = 'Usuário não autenticado.';
@@ -42,17 +46,30 @@ class _ProfilePageState extends State<ProfilePage> {
 
       final token = await usuarioFirebase.getIdToken();
 
+      if (token == null || token.isEmpty) {
+        if (!mounted) return;
+
+        setState(() {
+          carregando = false;
+          erro = 'Não foi possível validar sua sessão. Entre novamente.';
+        });
+        return;
+      }
+
       final resposta = await http.get(
         Uri.parse('$baseUrl/usuarios/eu'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
+      if (!mounted) return;
+
       if (resposta.statusCode == 200) {
         final dados = jsonDecode(resposta.body);
-        if (!mounted) return;
+
         setState(() {
           usuario = dados as Map<String, dynamic>;
           carregando = false;
+          erro = '';
         });
       } else {
         setState(() {
@@ -60,10 +77,12 @@ class _ProfilePageState extends State<ProfilePage> {
           erro = 'Não foi possível carregar o perfil.';
         });
       }
-    } catch (e) {
+    } catch (_) {
+      if (!mounted) return;
+
       setState(() {
         carregando = false;
-        erro = 'Erro de conexão com o servidor.';
+        erro = 'Erro ao carregar o perfil.';
       });
     }
   }
@@ -105,66 +124,74 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEEF2F9),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFEEF2F9),
+        foregroundColor: const Color(0xFF1E3A8A),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        leading: IconButton(
+          tooltip: 'Voltar ao início',
+          onPressed: _saindo ? null : widget.onVoltar,
+          icon: const Icon(Icons.arrow_back),
+        ),
+        title: const Text(
+          'Perfil',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Perfil',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A8A),
-                ),
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          children: [
+            _buildPerfil(),
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+            const Text(
+              'Conta',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF64748B),
               ),
-              const SizedBox(height: 24),
-              _buildPerfil(),
-              const SizedBox(height: 24),
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListTile(
-                  leading: const Icon(
-                    Icons.lock_outline,
-                    color: Color(0xFF2563EB),
-                  ),
-                  title: const Text('Alterar senha'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AlterarSenhaPage(),
-                      ),
-                    );
-                  },
-                ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              enabled: !_saindo,
+              leading: const Icon(Icons.lock_outline, color: Color(0xFF2563EB)),
+              title: const Text('Alterar senha'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _saindo
+                  ? null
+                  : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AlterarSenhaPage(),
+                        ),
+                      );
+                    },
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              enabled: !_saindo,
+              leading: _saindo
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.logout, color: Color(0xFFB91C1C)),
+              title: Text(
+                _saindo ? 'Saindo...' : 'Sair',
+                style: const TextStyle(color: Color(0xFFB91C1C)),
               ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: _saindo ? null : _sair,
-                icon: _saindo
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.logout),
-                label: Text(_saindo ? 'Saindo...' : 'Sair'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
+              onTap: _saindo ? null : _sair,
+            ),
+          ],
         ),
       ),
     );
@@ -172,54 +199,125 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildPerfil() {
     if (carregando) {
-      return const Card(
-        color: Colors.white,
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Center(child: CircularProgressIndicator()),
-        ),
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (erro.isNotEmpty) {
-      return Card(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(erro, style: const TextStyle(color: Colors.red)),
-        ),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Text(erro, style: const TextStyle(color: Color(0xFFB91C1C))),
       );
     }
 
-    final nome = usuario?['nome'] ?? 'Nome não informado';
-    final email = usuario?['email'] ?? 'E-mail não informado';
-    final secretaria =
-        usuario?['secretaria']?['nome'] ?? 'Secretaria não informada';
+    final nome = _textoOuPadrao(usuario?['nome'], 'Nome não informado');
 
-    return Card(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final email = _textoOuPadrao(usuario?['email'], 'E-mail não informado');
+
+    final perfil = _textoOuPadrao(usuario?['perfil'], 'Perfil não informado');
+
+    final perfilExibido = '${perfil[0].toUpperCase()}${perfil.substring(1)}';
+
+    final secretariaDados = usuario?['secretaria'];
+
+    final secretaria = secretariaDados is Map
+        ? _textoOuPadrao(secretariaDados['nome'], 'Não vinculada')
+        : 'Não vinculada';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              nome,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            const CircleAvatar(
+              radius: 32,
+              backgroundColor: Color(0xFFDBEAFE),
+              child: Icon(
+                Icons.person_outline,
+                size: 36,
                 color: Color(0xFF1E3A8A),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(email),
-            const SizedBox(height: 4),
-            Text(secretaria),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    nome,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E3A8A),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    perfilExibido,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
-      ),
+        const SizedBox(height: 28),
+        _buildDadoPerfil(
+          rotulo: 'E-mail',
+          valor: email,
+          icone: Icons.email_outlined,
+        ),
+        const SizedBox(height: 20),
+        _buildDadoPerfil(
+          rotulo: 'Secretaria',
+          valor: secretaria,
+          icone: Icons.account_balance_outlined,
+        ),
+      ],
+    );
+  }
+
+  String _textoOuPadrao(dynamic valor, String padrao) {
+    if (valor is String && valor.trim().isNotEmpty) {
+      return valor.trim();
+    }
+
+    return padrao;
+  }
+
+  Widget _buildDadoPerfil({
+    required String rotulo,
+    required String valor,
+    required IconData icone,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icone, size: 22, color: const Color(0xFF64748B)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                rotulo,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                valor,
+                style: const TextStyle(fontSize: 16, color: Color(0xFF1E293B)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

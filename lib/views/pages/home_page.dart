@@ -176,7 +176,13 @@ class _HomePageState extends State<HomePage> {
 
       //3 - Perfil
       // const Center(child: Text('Conteúdo da página perfil')),
-      const ProfilePage(),
+      ProfilePage(
+        onVoltar: () {
+          setState(() {
+            _selectedIndex = 0;
+          });
+        },
+      ),
     ];
 
     return Scaffold(
