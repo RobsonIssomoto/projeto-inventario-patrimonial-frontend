@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
-import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/profile_page.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/inventario_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,168 +13,126 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   @override
   Widget build(BuildContext context) {
-    final todosPatrimonios = Patrimonio.patrimonioMock;
-
-    // Define quantos serão exibidos na Home.
-    final limiteExibicao = 3;
-
-    // Prepara a lista limitada.
-    final listaExibida = todosPatrimonios.take(limiteExibicao).toList();
-
     final _pages = [
-      //0 - Início
-      Column(
-        children: [
-          // ÁREA SUPERIOR FIXA
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Botão escanear
-                ElevatedButton(
-                  onPressed: () {
-                    // Abrir scanner
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const ScannerPreviewPage(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 14.0,
-                      horizontal: 16.0,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.qr_code_scanner, size: 28),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'Escanear Patrimônio',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Aponte para o código de barras ou qrcode',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      const Icon(Icons.chevron_right),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-
-                // Busca + botão filtro
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Buscar por nome, patrimônio ou cód...',
-                          prefixIcon: const Icon(
-                            Icons.search,
-                            color: Colors.grey,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 0,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12.0),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.tune, color: Colors.black54),
-                        onPressed: () {
-                          _abrirFiltro(context);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16.0),
-
-                // Contagem e ordenação
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${listaExibida.length} itens encontrados',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const Row(
-                      children: [
-                        Text('Ordenar: ', style: TextStyle(color: Colors.grey)),
-                        Text(
-                          'Recentes',
-                          style: TextStyle(
-                            color: Color(0xFF1E3A8A),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Color(0xFF1E3A8A),
-                          size: 18,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+      // 0 - Início
+      SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+          children: [
+            const Text(
+              'Início',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E3A8A),
+              ),
             ),
-          ),
-
-          // LISTA ROLÁVEL
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              itemCount: listaExibida.length,
-              itemBuilder: (context, index) {
-                return PatrimonioCard(patrimonio: listaExibida[index]);
+            const SizedBox(height: 32),
+            const Text(
+              'Consulte seus patrimônios',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Escaneie a etiqueta para identificar um bem '
+              'e acessar seus dados.',
+              style: TextStyle(
+                fontSize: 16,
+                height: 1.5,
+                color: Color(0xFF64748B),
+              ),
+            ),
+            const SizedBox(height: 48),
+            const Center(
+              child: CircleAvatar(
+                radius: 64,
+                backgroundColor: Color(0xFFDBEAFE),
+                child: Icon(
+                  Icons.qr_code_scanner,
+                  size: 64,
+                  color: Color(0xFF2563EB),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ScannerPreviewPage()),
+                );
               },
+              icon: const Icon(Icons.qr_code_scanner, size: 24),
+              label: const Text(
+                'Escanear patrimônio',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                minimumSize: const Size(0, 56),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedIndex = 2;
+                  });
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF1E3A8A),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Consultar inventário',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward, size: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+      // 1 - Scanner abre em uma tela separada.
       const SizedBox.shrink(),
-      //2 - Inventário
-      const Center(child: Text('Conteúdo da página inventário')),
 
-      //3 - Perfil
-      // const Center(child: Text('Conteúdo da página perfil')),
+      // 2 - Inventário
+      InventarioPage(
+        onVoltar: () {
+          setState(() {
+            _selectedIndex = 0;
+          });
+        },
+      ),
+
+      // 3 - Perfil
       ProfilePage(
         onVoltar: () {
           setState(() {
@@ -184,7 +141,6 @@ class _HomePageState extends State<HomePage> {
         },
       ),
     ];
-
     return Scaffold(
       backgroundColor: const Color(0xFFEEF2F9),
 
@@ -233,101 +189,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
-  }
-
-  void _abrirFiltro(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Filtrar patrimônios',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Sala',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'lab_informatica',
-                    child: Text('Lab. Informática'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'secretaria',
-                    child: Text('Secretaria'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'lab_redes',
-                    child: Text('Lab. Redes'),
-                  ),
-                ],
-                onChanged: (value) {},
-              ),
-              const SizedBox(height: 16),
-
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Status',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'em_uso', child: Text('Em uso')),
-                  DropdownMenuItem(
-                    value: 'disponivel',
-                    child: Text('Disponível'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'manutencao',
-                    child: Text('Em manutenção'),
-                  ),
-                ],
-                onChanged: (value) {},
-              ),
-              const SizedBox(height: 20),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Limpar'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // Aplicar filtros na lista
-                      },
-                      child: const Text('Aplicar'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
