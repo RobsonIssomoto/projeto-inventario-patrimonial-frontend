@@ -4,8 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/alterar_senha_page.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/login_page.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/widgets/card_acao.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, required this.onVoltar});
@@ -19,18 +21,23 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   static const String baseUrl = 'http://localhost:3000/api/v1';
 
-  bool carregando = true;
-  String erro = '';
-  Map<String, dynamic>? usuario;
+  bool _carregando = true;
+  String _erro = '';
+  Map<String, dynamic>? _usuario;
   bool _saindo = false;
 
   @override
   void initState() {
     super.initState();
-    carregarPerfil();
+    _carregarPerfil();
   }
 
-  Future<void> carregarPerfil() async {
+  Future<void> _carregarPerfil() async {
+    setState(() {
+      _carregando = true;
+      _erro = '';
+    });
+
     try {
       final usuarioFirebase = FirebaseAuth.instance.currentUser;
 
@@ -38,8 +45,8 @@ class _ProfilePageState extends State<ProfilePage> {
         if (!mounted) return;
 
         setState(() {
-          carregando = false;
-          erro = 'Usuário não autenticado.';
+          _carregando = false;
+          _erro = 'Usuário não autenticado.';
         });
         return;
       }
@@ -50,8 +57,8 @@ class _ProfilePageState extends State<ProfilePage> {
         if (!mounted) return;
 
         setState(() {
-          carregando = false;
-          erro = 'Não foi possível validar sua sessão. Entre novamente.';
+          _carregando = false;
+          _erro = 'Não foi possível validar sua sessão. Entre novamente.';
         });
         return;
       }
@@ -67,22 +74,24 @@ class _ProfilePageState extends State<ProfilePage> {
         final dados = jsonDecode(resposta.body);
 
         setState(() {
-          usuario = dados as Map<String, dynamic>;
-          carregando = false;
-          erro = '';
+          _usuario = dados as Map<String, dynamic>;
+          _carregando = false;
+          _erro = '';
         });
       } else {
         setState(() {
-          carregando = false;
-          erro = 'Não foi possível carregar o perfil.';
+          _carregando = false;
+          _erro = 'Não foi possível carregar o perfil.';
         });
       }
     } catch (_) {
       if (!mounted) return;
 
       setState(() {
-        carregando = false;
-        erro = 'Erro ao carregar o perfil.';
+        _carregando = false;
+        _erro =
+            'Não foi possível carregar o perfil. '
+            'Verifique a conexão e tente novamente.';
       });
     }
   }
@@ -120,21 +129,23 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _abrirAlterarSenha() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AlterarSenhaPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF2F9),
+      backgroundColor: AppCores.fundo,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFEEF2F9),
-        foregroundColor: const Color(0xFF1E3A8A),
+        backgroundColor: AppCores.fundo,
+        foregroundColor: AppCores.azulEscuro,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        leading: IconButton(
-          tooltip: 'Voltar ao início',
-          onPressed: _saindo ? null : widget.onVoltar,
-          icon: const Icon(Icons.arrow_back),
-        ),
         title: const Text(
           'Perfil',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -143,53 +154,49 @@ class _ProfilePageState extends State<ProfilePage> {
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
           children: [
+            // DADOS DO USUÁRIO
             _buildPerfil(),
             const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 16),
+
+            // AÇÕES DA CONTA
             const Text(
               'Conta',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF64748B),
+                color: AppCores.texto,
               ),
             ),
-            const SizedBox(height: 8),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              enabled: !_saindo,
-              leading: const Icon(Icons.lock_outline, color: Color(0xFF2563EB)),
-              title: const Text('Alterar senha'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _saindo
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AlterarSenhaPage(),
-                        ),
-                      );
-                    },
+            const SizedBox(height: 12),
+            CardAcao(
+              icone: Icons.lock_outline,
+              titulo: 'Alterar senha',
+              descricao: 'Troque a senha usada para entrar no app.',
+              onTap: _saindo ? null : _abrirAlterarSenha,
             ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              enabled: !_saindo,
-              leading: _saindo
+            const SizedBox(height: 24),
+
+            // SAIR
+            OutlinedButton.icon(
+              onPressed: _saindo ? null : _sair,
+              icon: _saindo
                   ? const SizedBox(
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.logout, color: Color(0xFFB91C1C)),
-              title: Text(
-                _saindo ? 'Saindo...' : 'Sair',
-                style: const TextStyle(color: Color(0xFFB91C1C)),
+                  : const Icon(Icons.logout),
+              label: Text(_saindo ? 'Saindo...' : 'Sair da conta'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppCores.vermelhoEscuro,
+                side: const BorderSide(color: AppCores.vermelhoEscuro),
+                minimumSize: const Size(0, 52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
-              onTap: _saindo ? null : _sair,
             ),
           ],
         ),
@@ -197,30 +204,62 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Card branco com os dados do usuário (mesmo estilo do CardAcao).
   Widget _buildPerfil() {
-    if (carregando) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
+    Widget conteudo;
+
+    if (_carregando) {
+      conteudo = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
         child: Center(child: CircularProgressIndicator()),
       );
-    }
-
-    if (erro.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Text(erro, style: const TextStyle(color: Color(0xFFB91C1C))),
+    } else if (_erro.isNotEmpty) {
+      // Mesmo padrão de erro da tela de Inventário.
+      conteudo = Column(
+        children: [
+          const Icon(
+            Icons.cloud_off_outlined,
+            size: 40,
+            color: AppCores.textoSecundario,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _erro,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppCores.textoSecundario),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: _carregarPerfil,
+            child: const Text('Tentar novamente'),
+          ),
+        ],
       );
+    } else {
+      conteudo = _buildDadosUsuario();
     }
 
-    final nome = _textoOuPadrao(usuario?['nome'], 'Nome não informado');
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: conteudo,
+    );
+  }
 
-    final email = _textoOuPadrao(usuario?['email'], 'E-mail não informado');
+  Widget _buildDadosUsuario() {
+    final nome = _textoOuPadrao(_usuario?['nome'], 'Nome não informado');
 
-    final perfil = _textoOuPadrao(usuario?['perfil'], 'Perfil não informado');
+    final email = _textoOuPadrao(_usuario?['email'], 'E-mail não informado');
+
+    final perfil = _textoOuPadrao(_usuario?['perfil'], 'Perfil não informado');
 
     final perfilExibido = '${perfil[0].toUpperCase()}${perfil.substring(1)}';
 
-    final secretariaDados = usuario?['secretaria'];
+    final secretariaDados = _usuario?['secretaria'];
 
     final secretaria = secretariaDados is Map
         ? _textoOuPadrao(secretariaDados['nome'], 'Não vinculada')
@@ -230,15 +269,14 @@ class _ProfilePageState extends State<ProfilePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const CircleAvatar(
               radius: 32,
-              backgroundColor: Color(0xFFDBEAFE),
+              backgroundColor: AppCores.azulClaro,
               child: Icon(
                 Icons.person_outline,
                 size: 36,
-                color: Color(0xFF1E3A8A),
+                color: AppCores.azulEscuro,
               ),
             ),
             const SizedBox(width: 16),
@@ -249,9 +287,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   Text(
                     nome,
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A8A),
+                      color: AppCores.azulEscuro,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -259,7 +297,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     perfilExibido,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF475569),
+                      color: AppCores.textoSecundario,
                     ),
                   ),
                 ],
@@ -267,13 +305,15 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ],
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 16),
+        Divider(color: Colors.grey.shade300),
+        const SizedBox(height: 16),
         _buildDadoPerfil(
           rotulo: 'E-mail',
           valor: email,
           icone: Icons.email_outlined,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         _buildDadoPerfil(
           rotulo: 'Secretaria',
           valor: secretaria,
@@ -299,7 +339,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icone, size: 22, color: const Color(0xFF64748B)),
+        Icon(icone, size: 22, color: AppCores.textoSecundario),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -307,12 +347,15 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               Text(
                 rotulo,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppCores.textoSecundario,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 valor,
-                style: const TextStyle(fontSize: 16, color: Color(0xFF1E293B)),
+                style: const TextStyle(fontSize: 16, color: AppCores.texto),
               ),
             ],
           ),
