@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AlterarSenhaPage extends StatefulWidget {
   const AlterarSenhaPage({super.key});
@@ -29,31 +30,102 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
   }
 
   Future<void> _alterarSenha() async {
-    final isValid = _formKey.currentState!.validate();
+    if (_carregando) return;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    if (!isValid) return;
+    FocusScope.of(context).unfocus();
+
+    final senhaAtual = _senhaAtualController.text;
+    final novaSenha = _novaSenhaController.text;
 
     setState(() {
       _carregando = true;
     });
 
     try {
-      // TODO: substituir pela chamada real ao backend.
-      await Future.delayed(const Duration(seconds: 1));
+      final usuario = FirebaseAuth.instance.currentUser;
+
+      if (usuario == null) {
+        _mostrarMensagem('Sua sessão terminou. Entre novamente.');
+        return;
+      }
+
+      final email = usuario.email;
+
+      if (email == null || email.isEmpty) {
+        _mostrarMensagem('Não foi possível identificar o e-mail da conta.');
+        return;
+      }
+
+      final usaSenha = usuario.providerData.any(
+        (provedor) => provedor.providerId == 'password',
+      );
+
+      if (!usaSenha) {
+        _mostrarMensagem('Esta conta não utiliza login por e-mail e senha.');
+        return;
+      }
+
+      final credencial = EmailAuthProvider.credential(
+        email: email,
+        password: senhaAtual,
+      );
+
+      await usuario.reauthenticateWithCredential(credencial);
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Senha alterada com sucesso.')),
-      );
+      await usuario.updatePassword(novaSenha);
 
-      Navigator.pop(context);
-    } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível alterar a senha.')),
-      );
+      _senhaAtualController.clear();
+      _novaSenhaController.clear();
+      _confirmarSenhaController.clear();
+
+      _mostrarMensagem('Senha alterada com sucesso.');
+      Navigator.of(context).pop();
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      String mensagem;
+
+      switch (e.code) {
+        case 'wrong-password':
+        case 'invalid-credential':
+        case 'invalid-login-credentials':
+          mensagem = 'Confira a senha atual e tente novamente.';
+          break;
+        case 'weak-password':
+        case 'password-does-not-meet-requirements':
+          mensagem = 'A nova senha não atende aos requisitos de segurança.';
+          break;
+        case 'requires-recent-login':
+          mensagem = 'Entre novamente antes de alterar a senha.';
+          break;
+        case 'network-request-failed':
+          mensagem = 'Falha de conexão. Verifique sua internet.';
+          break;
+        case 'too-many-requests':
+          mensagem = 'Muitas tentativas. Aguarde antes de tentar novamente.';
+          break;
+        case 'user-disabled':
+          mensagem = 'Esta conta está desativada.';
+          break;
+        case 'user-not-found':
+        case 'invalid-user-token':
+        case 'user-token-expired':
+          mensagem = 'Sua sessão não é mais válida. Entre novamente.';
+          break;
+        default:
+          mensagem = 'Não foi possível alterar a senha. Tente novamente.';
+      }
+
+      _mostrarMensagem(mensagem);
+    } catch (_) {
+      if (!mounted) return;
+
+      _mostrarMensagem('Ocorreu um erro inesperado ao alterar a senha.');
     } finally {
       if (mounted) {
         setState(() {
@@ -61,6 +133,14 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
         });
       }
     }
+  }
+
+  void _mostrarMensagem(String mensagem) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(mensagem)));
   }
 
   @override
@@ -110,11 +190,15 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                     ),
                   ),
                   validator: (valor) {
-                    if (valor == null || valor.trim().isEmpty) {
+                    if (valor == null || valor.isEmpty) {
                       return 'Informe a senha atual.';
                     }
+
                     return null;
                   },
+                  enabled: !_carregando,
+                  autocorrect: false,
+                  enableSuggestions: false,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -143,11 +227,23 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                     ),
                   ),
                   validator: (valor) {
-                    if (valor == null || valor.trim().length < 6) {
+                    if (valor == null || valor.isEmpty) {
+                      return 'Informe a nova senha.';
+                    }
+
+                    if (valor.length < 6) {
                       return 'A nova senha deve ter no mínimo 6 caracteres.';
                     }
+
+                    if (valor == _senhaAtualController.text) {
+                      return 'A nova senha deve ser diferente da senha atual.';
+                    }
+
                     return null;
                   },
+                  enabled: !_carregando,
+                  autocorrect: false,
+                  enableSuggestions: false,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -181,6 +277,9 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                     }
                     return null;
                   },
+                  enabled: !_carregando,
+                  autocorrect: false,
+                  enableSuggestions: false,
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(

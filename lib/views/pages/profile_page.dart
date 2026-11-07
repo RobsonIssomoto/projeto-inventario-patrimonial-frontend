@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/login_page.dart';
 
 import 'dart:convert';
 
@@ -19,6 +20,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool carregando = true;
   String erro = '';
   Map<String, dynamic>? usuario;
+  bool _saindo = false;
 
   @override
   void initState() {
@@ -66,6 +68,39 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _sair() async {
+    if (_saindo) return;
+
+    setState(() {
+      _saindo = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.signOut();
+
+      if (!mounted) return;
+
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível sair. Tente novamente.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _saindo = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,6 +142,25 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     );
                   },
+                ),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: _saindo ? null : _sair,
+                icon: _saindo
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.logout),
+                label: Text(_saindo ? 'Saindo...' : 'Sair'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ],
