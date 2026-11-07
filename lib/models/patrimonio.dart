@@ -1,4 +1,8 @@
 class Patrimonio {
+  final String? id;
+  final String? secretariaId;
+  final String? salaId;
+
   final String numeroPatrimonio;
   final String descricao;
   final String secretaria;
@@ -10,6 +14,9 @@ class Patrimonio {
   final String? imagem;
 
   Patrimonio({
+    this.id,
+    this.secretariaId,
+    this.salaId,
     required this.numeroPatrimonio,
     required this.descricao,
     required this.secretaria,
@@ -20,6 +27,46 @@ class Patrimonio {
     required this.observacoes,
     this.imagem,
   });
+
+  factory Patrimonio.fromJson(Map<String, dynamic> json) {
+    final secretariaDados = json['secretaria'];
+    final salaDados = json['sala'];
+
+    String? secretariaId;
+    String secretariaNome = 'Secretaria não informada';
+
+    if (secretariaDados is Map) {
+      secretariaId = secretariaDados['_id'] as String?;
+      secretariaNome =
+          secretariaDados['nome'] as String? ?? 'Secretaria não informada';
+    } else if (secretariaDados is String) {
+      secretariaId = secretariaDados;
+    }
+
+    String? salaId;
+    String salaNome = 'Sala não informada';
+
+    if (salaDados is Map) {
+      salaId = salaDados['_id'] as String?;
+      salaNome = salaDados['nome'] as String? ?? 'Sala não informada';
+    } else if (salaDados is String) {
+      salaId = salaDados;
+    }
+
+    return Patrimonio(
+      id: json['_id'] as String?,
+      secretariaId: secretariaId,
+      salaId: salaId,
+      numeroPatrimonio: json['numeroPatrimonio'] as String,
+      descricao: json['descricao'] as String,
+      secretaria: secretariaNome,
+      sala: salaNome,
+      categoria: json['categoria'] as String? ?? 'Sem categoria',
+      status: json['status'] as String? ?? 'pendente',
+      estadoConservacao: json['estadoConservacao'] as String? ?? 'bom',
+      observacoes: json['observacoes'] as String? ?? '',
+    );
+  }
 
   static List<Patrimonio> patrimonioMock = [
     Patrimonio(

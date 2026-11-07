@@ -25,17 +25,69 @@ class _InventarioPageState extends State<InventarioPage> {
   String? _categoriaSelecionada;
   String _ordenarPor = 'descricao';
 
+  bool _carregando = true;
+  String _erro = '';
+
   @override
   void initState() {
     super.initState();
-
-    _patrimoniosExibidos = _viewModel.buscarPatrimonios();
+    _carregarPatrimonios();
   }
 
   @override
   void dispose() {
     _buscaController.dispose();
     super.dispose();
+  }
+
+  Future<void> _carregarPatrimonios() async {
+    if (!mounted) return;
+
+    setState(() {
+      _carregando = true;
+      _erro = '';
+    });
+
+    try {
+      await _viewModel.carregarPatrimonios();
+
+      if (!mounted) return;
+
+      final salas = _viewModel.listarSalas();
+      final categorias = _viewModel.listarCategorias();
+
+      if (!salas.contains(_salaSelecionada)) {
+        _salaSelecionada = null;
+      }
+
+      if (!categorias.contains(_categoriaSelecionada)) {
+        _categoriaSelecionada = null;
+      }
+
+      setState(() {
+        _patrimoniosExibidos = _viewModel.buscarPatrimonios(
+          busca: _buscaController.text,
+          sala: _salaSelecionada,
+          categoria: _categoriaSelecionada,
+          ordenarPor: _ordenarPor,
+        );
+
+        _carregando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      final mensagem = e.toString();
+
+      setState(() {
+        _carregando = false;
+
+        _erro = mensagem.startsWith('Exception: ')
+            ? mensagem.substring('Exception: '.length)
+            : 'Não foi possível carregar os patrimônios. '
+                  'Verifique a conexão e tente novamente.';
+      });
+    }
   }
 
   void _atualizarLista() {
@@ -62,6 +114,8 @@ class _InventarioPageState extends State<InventarioPage> {
   }
 
   Future<void> _abrirFiltros() async {
+    FocusScope.of(context).unfocus();
+
     final salas = _viewModel.listarSalas();
     final categorias = _viewModel.listarCategorias();
 
@@ -164,9 +218,94 @@ class _InventarioPageState extends State<InventarioPage> {
     _atualizarLista();
   }
 
+  Widget _buildLista() {
+    if (_carregando) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_erro.isNotEmpty) {
+      return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.cloud_off_outlined,
+                size: 40,
+                color: Color(0xFF64748B),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _erro,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: Color(0xFF475569)),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: _carregarPatrimonios,
+                child: const Text('Tentar novamente'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_patrimoniosExibidos.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'Nenhum patrimônio encontrado.\n'
+            'Se houver busca ou filtros ativos, tente alterá-los.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 16),
+      itemCount: _patrimoniosExibidos.length,
+      itemBuilder: (context, index) {
+        final patrimonio = _patrimoniosExibidos[index];
+
+        return PatrimonioCardSm(
+          patrimonio: patrimonio,
+          onTap: () {
+            FocusScope.of(context).unfocus();
+
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => PatrimonioDetail(patrimonio: patrimonio),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    print('BUILD INVENTARIO PAGE');
     final temFiltro = _salaSelecionada != null || _categoriaSelecionada != null;
+
+    final podeConsultar = !_carregando && _erro.isEmpty;
+
+    final String textoContagem;
+
+    if (_carregando) {
+      textoContagem = 'Carregando patrimônios...';
+    } else if (_erro.isNotEmpty) {
+      textoContagem = 'Consulta indisponível';
+    } else if (_patrimoniosExibidos.length == 1) {
+      textoContagem = '1 patrimônio encontrado';
+    } else {
+      textoContagem = '${_patrimoniosExibidos.length} patrimônios encontrados';
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFEEF2F9),
@@ -198,6 +337,7 @@ class _InventarioPageState extends State<InventarioPage> {
                   Expanded(
                     child: TextField(
                       controller: _buscaController,
+                      enabled: podeConsultar,
                       onChanged: (_) {
                         _atualizarLista();
                       },
@@ -208,7 +348,7 @@ class _InventarioPageState extends State<InventarioPage> {
                             ? null
                             : IconButton(
                                 tooltip: 'Limpar busca',
-                                onPressed: _limparBusca,
+                                onPressed: podeConsultar ? _limparBusca : null,
                                 icon: const Icon(Icons.close),
                               ),
                         filled: true,
@@ -223,10 +363,12 @@ class _InventarioPageState extends State<InventarioPage> {
                   const SizedBox(width: 8),
                   IconButton(
                     tooltip: 'Filtrar patrimônios',
-                    onPressed: _abrirFiltros,
+                    onPressed: podeConsultar ? _abrirFiltros : null,
                     icon: Icon(
                       Icons.tune,
-                      color: temFiltro
+                      color: !podeConsultar
+                          ? const Color(0xFF94A3B8)
+                          : temFiltro
                           ? const Color(0xFF2563EB)
                           : const Color(0xFF64748B),
                     ),
@@ -247,7 +389,7 @@ class _InventarioPageState extends State<InventarioPage> {
                     if (_categoriaSelecionada != null)
                       Chip(label: Text(_categoriaSelecionada!)),
                     TextButton(
-                      onPressed: _limparFiltros,
+                      onPressed: podeConsultar ? _limparFiltros : null,
                       child: const Text('Limpar filtros'),
                     ),
                   ],
@@ -259,10 +401,7 @@ class _InventarioPageState extends State<InventarioPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      _patrimoniosExibidos.length == 1
-                          ? '1 patrimônio encontrado'
-                          : '${_patrimoniosExibidos.length} '
-                                'patrimônios encontrados',
+                      textoContagem,
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF475569),
@@ -270,6 +409,7 @@ class _InventarioPageState extends State<InventarioPage> {
                     ),
                   ),
                   PopupMenuButton<String>(
+                    enabled: podeConsultar,
                     tooltip: 'Ordenar patrimônios',
                     initialValue: _ordenarPor,
                     onSelected: (valor) {
@@ -288,49 +428,17 @@ class _InventarioPageState extends State<InventarioPage> {
                         child: const Text('Número patrimonial'),
                       ),
                     ],
-                    icon: const Icon(Icons.sort, color: Color(0xFF1E3A8A)),
+                    icon: Icon(
+                      Icons.sort,
+                      color: podeConsultar
+                          ? const Color(0xFF1E3A8A)
+                          : const Color(0xFF94A3B8),
+                    ),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: _patrimoniosExibidos.isEmpty
-                  ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Text(
-                          'Nenhum patrimônio encontrado.\n'
-                          'Tente outra busca ou limpe os filtros.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      itemCount: _patrimoniosExibidos.length,
-                      itemBuilder: (context, index) {
-                        final patrimonio = _patrimoniosExibidos[index];
-
-                        return PatrimonioCardSm(
-                          patrimonio: patrimonio,
-                          onTap: () {
-                            FocusScope.of(context).unfocus();
-
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    PatrimonioDetail(patrimonio: patrimonio),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-            ),
+            Expanded(child: _buildLista()),
           ],
         ),
       ),

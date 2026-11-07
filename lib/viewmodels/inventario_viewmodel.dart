@@ -1,7 +1,16 @@
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
+import 'package:projeto_inventario_patrimonial_frontend/repositories/patrimonio_repository.dart';
 
 class InventarioViewModel {
-  final List<Patrimonio> _patrimonios = Patrimonio.patrimonioMock;
+  final PatrimonioRepository _repository = PatrimonioRepository();
+
+  List<Patrimonio> _patrimonios = [];
+
+  Future<void> carregarPatrimonios() async {
+    final patrimonios = await _repository.listarPatrimonios();
+
+    _patrimonios = patrimonios;
+  }
 
   List<String> listarSalas() {
     final salas = _patrimonios
