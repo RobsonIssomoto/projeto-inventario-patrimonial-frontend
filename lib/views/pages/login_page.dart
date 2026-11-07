@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/home_page.dart';
 import 'package:projeto_inventario_patrimonial_frontend/viewmodels/login_viewmodel.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,8 +15,11 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-  // Variável de estado para alternar a visibilidade da senha
+  // Alternar a visibilidade da senha
   bool _senhaOculta = true;
+
+  // Login loading
+  bool _carregando = false;
 
   final LoginViewModel _viewModel = LoginViewModel();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -28,10 +31,46 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  Future<void> _entrar() async {
+    final isValid = _formKey.currentState!.validate();
+
+    if (!isValid) return;
+
+    // Liga o loading
+    setState(() {
+      _carregando = true;
+    });
+
+    try {
+      await _viewModel.login(
+        email: _emailController.text,
+        senha: _senhaController.text,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      // Desativa o loading
+      setState(() {
+        _carregando = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('E-mail ou senha inválidos.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF2F9),
+      backgroundColor: AppCores.fundo,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
@@ -50,18 +89,18 @@ class _LoginPageState extends State<LoginPage> {
                       return const Icon(
                         Icons.business,
                         size: 100,
-                        color: Color(0xFF2563EB),
+                        color: AppCores.azul,
                       );
                     },
                   ),
                 ),
                 const SizedBox(height: 40),
                 const Text(
-                  'Log in',
+                  'Entrar',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E3A8A),
+                    color: AppCores.azulEscuro,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -112,48 +151,35 @@ class _LoginPageState extends State<LoginPage> {
 
                 // Botão Entrar
                 ElevatedButton(
-                  onPressed: () async {
-                    final isValid = _formKey.currentState!.validate();
-
-                    if (!isValid) return;
-
-                    try {
-                      await _viewModel.login(
-                        email: _emailController.text,
-                        senha: _senhaController.text,
-                      );
-
-                      if (!context.mounted) return;
-
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomePage(),
-                        ),
-                      );
-                    } catch (error) {
-                      if (!context.mounted) return;
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('E-mail ou senha inválidos.'),
-                        ),
-                      );
-                    }
-                  },
+                  // evita cliques repetidos
+                  onPressed: _carregando ? null : _entrar,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: AppCores.azul,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppCores.azulDesabilitado,
+                    disabledForegroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 2,
                   ),
-                  child: const Text(
-                    'Entrar',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  child: _carregando
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Entrar',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ],
             ),

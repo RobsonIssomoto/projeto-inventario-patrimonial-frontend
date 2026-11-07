@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AlterarSenhaPage extends StatefulWidget {
@@ -146,11 +147,11 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF2F9),
+      backgroundColor: AppCores.fundo,
       appBar: AppBar(
         title: const Text('Alterar senha'),
-        backgroundColor: const Color(0xFFEEF2F9),
-        foregroundColor: const Color(0xFF1E3A8A),
+        backgroundColor: AppCores.fundo,
+        foregroundColor: AppCores.azulEscuro,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
@@ -168,7 +169,7 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                 //   style: TextStyle(
                 //     fontSize: 32,
                 //     fontWeight: FontWeight.bold,
-                //     color: Color(0xFF1E3A8A),
+                //     color: AppCores.azulEscuro,
                 //   ),
                 // ),
                 // const SizedBox(height: 24),
@@ -293,7 +294,7 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                 ElevatedButton(
                   onPressed: _carregando ? null : _alterarSenha,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: AppCores.azul,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(

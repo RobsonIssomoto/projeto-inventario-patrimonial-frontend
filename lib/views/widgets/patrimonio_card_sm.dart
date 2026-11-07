@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 
 class PatrimonioCardSm extends StatelessWidget {
@@ -88,14 +89,14 @@ class PatrimonioCardSm extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFDBEAFE),
+                            color: AppCores.azulClaro,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             patrimonio.numeroPatrimonio,
                             style: const TextStyle(
                               fontSize: 11,
-                              color: Color(0xFF1E3A8A),
+                              color: AppCores.azulEscuro,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -110,7 +111,7 @@ class PatrimonioCardSm extends StatelessWidget {
                                   child: Icon(
                                     Icons.door_sliding_outlined,
                                     size: 15,
-                                    color: Color(0xFF64748B),
+                                    color: AppCores.textoSecundario,
                                   ),
                                 ),
                               ),
@@ -123,7 +124,7 @@ class PatrimonioCardSm extends StatelessWidget {
                           ),
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF64748B),
+                            color: AppCores.textoSecundario,
                           ),
                         ),
                       ],
@@ -134,7 +135,7 @@ class PatrimonioCardSm extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E293B),
+                        color: AppCores.texto,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 
 class PatrimonioCard extends StatelessWidget {
@@ -28,13 +29,13 @@ class PatrimonioCard extends StatelessWidget {
                     vertical: 6.0,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xffbfdbfe),
+                    color: AppCores.azulClaro,
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                   child: Text(
                     patrimonio.numeroPatrimonio,
                     style: const TextStyle(
-                      color: Color(0xff1e3a8a),
+                      color: AppCores.azulEscuro,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -77,7 +78,7 @@ class PatrimonioCard extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.corporate_fare,
-                        color: Color(0xff1e3a8a),
+                        color: AppCores.azulEscuro,
                       ),
                       const SizedBox(width: 8.0),
                       Text(
@@ -138,7 +139,7 @@ class PatrimonioCard extends StatelessWidget {
                     icon: const Icon(Icons.assignment_turned_in),
                     label: const Text('Transferir'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff2563eb), // Azul do botão
+                      backgroundColor: AppCores.azul, // Azul do botão
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14.0),
                       shape: RoundedRectangleBorder(

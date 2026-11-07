@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
-import 'package:projeto_inventario_patrimonial_frontend/views/pages/home_page.dart';
-import 'package:projeto_inventario_patrimonial_frontend/views/pages/login_page.dart';
-import 'package:projeto_inventario_patrimonial_frontend/views/pages/patrimonio_detail.dart';
-import 'package:projeto_inventario_patrimonial_frontend/views/pages/alterar_senha_page.dart';
-import 'package:projeto_inventario_patrimonial_frontend/views/pages/criar_senha_page.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/splash_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'firebase_options.dart';
-
-// void main() {
-//   runApp(const MyApp());
-// }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,14 +18,24 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Página Inicial - APP Inventário Patrimônial",
-      home: LoginPage(),
-      // const CriarSenhaPage(
-      //   oobCode:
-      // ),
-      // PatrimonioDetail(
-      //   patrimonio: Patrimonio.patrimonioMock[0],
-      // ), // Chama a página estruturada
+      title: 'Inventário Patrimonial',
+
+      // TEMA DO APP
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppCores.azul,
+          primary: AppCores.azul,
+        ),
+        scaffoldBackgroundColor: AppCores.fundo,
+
+        // Fundo do item selecionado na barra de navegação inferior.
+        navigationBarTheme: const NavigationBarThemeData(
+          indicatorColor: AppCores.azulClaro,
+        ),
+      ),
+
+      // A splash decide se abre o Login ou a Home.
+      home: const SplashPage(),
     );
   }
 }

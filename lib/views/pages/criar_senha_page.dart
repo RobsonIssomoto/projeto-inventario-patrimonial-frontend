@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/login_page.dart';
 
@@ -128,7 +129,7 @@ class _CriarSenhaPageState extends State<CriarSenhaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF2F9),
+      backgroundColor: AppCores.fundo,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
@@ -142,7 +143,7 @@ class _CriarSenhaPageState extends State<CriarSenhaPage> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E3A8A),
+                    color: AppCores.azulEscuro,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -229,7 +230,7 @@ class _CriarSenhaPageState extends State<CriarSenhaPage> {
                 ElevatedButton(
                   onPressed: _carregando ? null : _criarSenha,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: AppCores.azul,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
