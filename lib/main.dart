@@ -27,14 +27,10 @@ class MyApp extends StatelessWidget {
           primary: AppCores.azul,
         ),
         scaffoldBackgroundColor: AppCores.fundo,
-
-        // Fundo do item selecionado na barra de navegação inferior.
         navigationBarTheme: const NavigationBarThemeData(
           indicatorColor: AppCores.azulClaro,
         ),
       ),
-
-      // A splash decide se abre o Login ou a Home.
       home: const SplashPage(),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 import 'package:projeto_inventario_patrimonial_frontend/viewmodels/inventario_viewmodel.dart';
@@ -139,7 +140,7 @@ class _InventarioPageState extends State<InventarioPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E3A8A),
+                    color: AppCores.azulEscuro,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -233,13 +234,16 @@ class _InventarioPageState extends State<InventarioPage> {
               const Icon(
                 Icons.cloud_off_outlined,
                 size: 40,
-                color: Color(0xFF64748B),
+                color: AppCores.textoSecundario,
               ),
               const SizedBox(height: 16),
               Text(
                 _erro,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Color(0xFF475569)),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppCores.textoSecundario,
+                ),
               ),
               const SizedBox(height: 16),
               OutlinedButton(
@@ -260,7 +264,7 @@ class _InventarioPageState extends State<InventarioPage> {
             'Nenhum patrimônio encontrado.\n'
             'Se houver busca ou filtros ativos, tente alterá-los.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+            style: TextStyle(fontSize: 16, color: AppCores.textoSecundario),
           ),
         ),
       );
@@ -274,14 +278,20 @@ class _InventarioPageState extends State<InventarioPage> {
 
         return PatrimonioCardSm(
           patrimonio: patrimonio,
-          onTap: () {
+          onTap: () async {
             FocusScope.of(context).unfocus();
 
-            Navigator.of(context).push(
+            // A tela de detalhes devolve true quando o patrimônio foi salvo
+            final salvou = await Navigator.of(context).push<bool>(
               MaterialPageRoute(
                 builder: (context) => PatrimonioDetail(patrimonio: patrimonio),
               ),
             );
+
+            // Recarrega a lista para mostrar os dados atualizados
+            if (salvou == true) {
+              _carregarPatrimonios();
+            }
           },
         );
       },
@@ -290,7 +300,6 @@ class _InventarioPageState extends State<InventarioPage> {
 
   @override
   Widget build(BuildContext context) {
-    print('BUILD INVENTARIO PAGE');
     final temFiltro = _salaSelecionada != null || _categoriaSelecionada != null;
 
     final podeConsultar = !_carregando && _erro.isEmpty;
@@ -308,18 +317,13 @@ class _InventarioPageState extends State<InventarioPage> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF2F9),
+      backgroundColor: AppCores.fundo,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFEEF2F9),
-        foregroundColor: const Color(0xFF1E3A8A),
+        backgroundColor: AppCores.fundo,
+        foregroundColor: AppCores.azulEscuro,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        leading: IconButton(
-          tooltip: 'Voltar ao início',
-          onPressed: widget.onVoltar,
-          icon: const Icon(Icons.arrow_back),
-        ),
         title: const Text(
           'Inventário',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -367,10 +371,10 @@ class _InventarioPageState extends State<InventarioPage> {
                     icon: Icon(
                       Icons.tune,
                       color: !podeConsultar
-                          ? const Color(0xFF94A3B8)
+                          ? AppCores.desabilitado
                           : temFiltro
-                          ? const Color(0xFF2563EB)
-                          : const Color(0xFF64748B),
+                          ? AppCores.azul
+                          : AppCores.textoSecundario,
                     ),
                   ),
                 ],
@@ -404,7 +408,7 @@ class _InventarioPageState extends State<InventarioPage> {
                       textoContagem,
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF475569),
+                        color: AppCores.textoSecundario,
                       ),
                     ),
                   ),
@@ -431,8 +435,8 @@ class _InventarioPageState extends State<InventarioPage> {
                     icon: Icon(
                       Icons.sort,
                       color: podeConsultar
-                          ? const Color(0xFF1E3A8A)
-                          : const Color(0xFF94A3B8),
+                          ? AppCores.azulEscuro
+                          : AppCores.desabilitado,
                     ),
                   ),
                 ],

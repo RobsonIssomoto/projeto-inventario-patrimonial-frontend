@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 
 class PatrimonioValidationCard extends StatelessWidget {
   final String? statusSelecionado;
@@ -7,12 +8,16 @@ class PatrimonioValidationCard extends StatelessWidget {
   final ValueChanged<String> onStatusChanged;
   final ValueChanged<String> onEstadoChanged;
 
+  // Controla o texto do campo de observação
+  final TextEditingController observacaoController;
+
   const PatrimonioValidationCard({
     super.key,
     required this.statusSelecionado,
     required this.estadoSelecionado,
     required this.onStatusChanged,
     required this.onEstadoChanged,
+    required this.observacaoController,
   });
 
   @override
@@ -20,7 +25,7 @@ class PatrimonioValidationCard extends StatelessWidget {
     return Card(
       elevation: 2,
       color: Colors.white,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: Colors.grey.shade300),
@@ -44,16 +49,18 @@ class PatrimonioValidationCard extends StatelessWidget {
             // STATUS DA CONFERÊNCIA
             _grupo(
               titulo: 'Status da Conferência',
-              opcoes: const ['Conferido', 'Pendente', 'Não localizado'],
+              // valores: o que a API usa / rotulos: o que aparece na tela
+              valores: const ['conferido', 'pendente', 'nao_localizado'],
+              rotulos: const ['Conferido', 'Pendente', 'Não localizado'],
               icones: const [
                 Icons.check_circle,
                 Icons.watch_later,
                 Icons.cancel,
               ],
               cores: const [
-                Color(0xFF10B981),
-                Color(0xFFF9A825),
-                Color(0xFFEF4444),
+                AppCores.verde,
+                AppCores.amarelo,
+                AppCores.vermelho,
               ],
               valorSelecionado: statusSelecionado,
               onChanged: onStatusChanged,
@@ -64,7 +71,8 @@ class PatrimonioValidationCard extends StatelessWidget {
             // ESTADO DE CONSERVAÇÃO
             _grupo(
               titulo: 'Estado de Conservação',
-              opcoes: const ['Novo', 'Bom', 'Regular', 'Ruim', 'Inservível'],
+              valores: const ['novo', 'bom', 'regular', 'ruim', 'inservivel'],
+              rotulos: const ['Novo', 'Bom', 'Regular', 'Ruim', 'Inservível'],
               icones: const [
                 Icons.circle,
                 Icons.circle,
@@ -74,10 +82,10 @@ class PatrimonioValidationCard extends StatelessWidget {
               ],
               cores: const [
                 Colors.teal,
-                Color(0xFF2563EB),
-                Color(0xFFF9B625),
-                Color(0xFFF97316),
-                Colors.red,
+                AppCores.azul,
+                AppCores.amarelo,
+                AppCores.laranja,
+                AppCores.vermelho,
               ],
               valorSelecionado: estadoSelecionado,
               onChanged: onEstadoChanged,
@@ -90,6 +98,7 @@ class PatrimonioValidationCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             TextField(
+              controller: observacaoController,
               maxLines: 5,
               keyboardType: TextInputType.multiline,
               decoration: const InputDecoration(
@@ -105,7 +114,8 @@ class PatrimonioValidationCard extends StatelessWidget {
 
   Widget _grupo({
     required String titulo,
-    required List<String> opcoes,
+    required List<String> valores,
+    required List<String> rotulos,
     required List<IconData> icones,
     required List<Color> cores,
     required String? valorSelecionado,
@@ -121,15 +131,15 @@ class PatrimonioValidationCard extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: [
-            for (int i = 0; i < opcoes.length; i++) ...[
+            for (int i = 0; i < valores.length; i++) ...[
               if (i > 0) const SizedBox(width: 8),
               Expanded(
                 child: _opcao(
-                  texto: opcoes[i],
+                  texto: rotulos[i],
                   icone: icones[i],
                   cor: cores[i],
-                  selecionado: valorSelecionado == opcoes[i],
-                  onTap: () => onChanged(opcoes[i]),
+                  selecionado: valorSelecionado == valores[i],
+                  onTap: () => onChanged(valores[i]),
                 ),
               ),
             ],
@@ -153,9 +163,7 @@ class PatrimonioValidationCard extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           minimumSize: Size.zero,
           padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
-          backgroundColor: selecionado
-              ? cor.withAlpha(30)
-              : const Color(0xFFF8F8F8),
+          backgroundColor: selecionado ? cor.withAlpha(30) : AppCores.fundo,
           foregroundColor: selecionado ? cor : Colors.grey.shade700,
           side: BorderSide(
             color: selecionado ? cor : Colors.grey.shade300,

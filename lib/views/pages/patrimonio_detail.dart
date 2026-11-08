@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
-import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_card_sm.dart';
+import 'package:projeto_inventario_patrimonial_frontend/models/sala.dart';
+import 'package:projeto_inventario_patrimonial_frontend/services/patrimonio_service.dart';
+import 'package:projeto_inventario_patrimonial_frontend/services/sala_service.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/transferencia_page.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/widgets/localizacao_card.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_resumo_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_validation_card.dart';
 
 class PatrimonioDetail extends StatefulWidget {
@@ -13,13 +19,230 @@ class PatrimonioDetail extends StatefulWidget {
 }
 
 class _PatrimonioDetailState extends State<PatrimonioDetail> {
-  String? _statusSelecionado;
-  String? _estadoSelecionado;
+  final PatrimonioService _patrimonioService = PatrimonioService();
+  final SalaService _salaService = SalaService();
+
+  final TextEditingController _observacaoController = TextEditingController();
+
+  // Valores da API ("conferido", "bom"...)
+  late String _statusSelecionado;
+  late String _estadoSelecionado;
+
+  Sala? _salaNova;
+
+  bool _salvando = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // A tela já abre com os dados atuais do patrimônio
+    _statusSelecionado = widget.patrimonio.status;
+    _estadoSelecionado = widget.patrimonio.estadoConservacao;
+    _observacaoController.text = widget.patrimonio.observacoes;
+  }
+
+  @override
+  void dispose() {
+    _observacaoController.dispose();
+    super.dispose();
+  }
+
+  // TROCA DE SALA
+
+  Future<void> _escolherSala() async {
+    final secretariaId = widget.patrimonio.secretariaId;
+
+    if (secretariaId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Secretaria do patrimônio não informada.'),
+        ),
+      );
+      return;
+    }
+
+    final salasFuture = _salaService.listarSalasDaSecretaria(secretariaId);
+
+    // Abre uma lista de salas na parte de baixo da tela.
+    // Quando o usuário toca em uma sala, ela volta para cá.
+    final salaEscolhida = await showModalBottomSheet<Sala>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return FutureBuilder<List<Sala>>(
+          future: salasFuture,
+          builder: (context, snapshot) {
+            // Carregando
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            // Erro
+            if (snapshot.hasError) {
+              return SizedBox(
+                height: 200,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      snapshot.error.toString().replaceFirst('Exception: ', ''),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            // A sala atual não entra na lista
+            final salas = (snapshot.data ?? [])
+                .where((sala) => sala.id != widget.patrimonio.salaId)
+                .toList();
+
+            if (salas.isEmpty) {
+              return const SizedBox(
+                height: 200,
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(
+                      'Não há outras salas cadastradas nesta secretaria.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(24, 0, 24, 8),
+                    child: Text(
+                      'Selecione a nova sala',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: salas.length,
+                      itemBuilder: (context, index) {
+                        final sala = salas[index];
+
+                        return ListTile(
+                          leading: const Icon(Icons.meeting_room_outlined),
+                          title: Text(sala.nome),
+                          onTap: () => Navigator.pop(context, sala),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (salaEscolhida == null) return; // fechou sem escolher
+
+    setState(() {
+      _salaNova = salaEscolhida;
+    });
+  }
+
+  // SALVAR
+
+  Future<void> _salvar() async {
+    setState(() {
+      _salvando = true;
+    });
+
+    try {
+      await _patrimonioService.atualizarPatrimonio(
+        id: widget.patrimonio.id ?? '',
+        status: _statusSelecionado,
+        estadoConservacao: _estadoSelecionado,
+        observacoes: _observacaoController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      // Guarda o messenger antes de fechar a tela
+      final messenger = ScaffoldMessenger.of(context);
+
+      // true avisa a tela anterior que precisa recarregar a lista
+      Navigator.pop(context, true);
+
+      // TODO(backend): a API ainda não salva a troca de sala
+      // (o PATCH /patrimonios/:id ignora o campo "sala").
+      if (_salaNova != null) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Conferência salva. A troca de sala ainda não é '
+              'salva pela API.',
+            ),
+          ),
+        );
+      } else {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Patrimônio atualizado com sucesso.')),
+        );
+      }
+    } catch (erro) {
+      if (!mounted) return;
+
+      setState(() {
+        _salvando = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(erro.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
+    }
+  }
+
+  // NAVEGAÇÃO
+
+  void _abrirTransferencia() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TransferenciaPage(patrimonio: widget.patrimonio),
+      ),
+    );
+  }
+
+  void _abrirHistorico() {
+    // TODO: abrir a tela de Histórico de Movimentações
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Histórico de movimentações em breve.')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF3FA),
+      backgroundColor: AppCores.fundo,
+
+      // BOTÕES FIXOS NO RODAPÉ (sempre visíveis, sem precisar rolar)
+      bottomNavigationBar: _barraDeAcoes(),
+
       body: SafeArea(
         child: Column(
           children: [
@@ -31,7 +254,7 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
                   const CircleAvatar(
                     radius: 20,
                     backgroundColor: Colors.white,
-                    child: BackButton(color: Color(0xFF1E3A8A)),
+                    child: BackButton(color: AppCores.azulEscuro),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -41,6 +264,20 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                  ),
+
+                  // Histórico: ícone no canto do cabeçalho
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.white,
+                    child: IconButton(
+                      tooltip: 'Histórico de movimentações',
+                      icon: const Icon(
+                        Icons.history,
+                        color: AppCores.azulEscuro,
+                      ),
+                      onPressed: _abrirHistorico,
                     ),
                   ),
                 ],
@@ -54,15 +291,28 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // CARTÃO DE DESCRIÇÃO
-                    PatrimonioCardSm(patrimonio: widget.patrimonio),
+                    // 1. DADOS PRINCIPAIS (somente leitura)
+                    PatrimonioResumoCard(patrimonio: widget.patrimonio),
 
-                    const SizedBox(height: 8),
+                    // 2. LOCALIZAÇÃO (trocar sala / transferir secretaria)
+                    LocalizacaoCard(
+                      secretaria: widget.patrimonio.secretaria,
+                      salaAtual: widget.patrimonio.sala,
+                      salaNova: _salaNova?.nome,
+                      onTrocarSala: _escolherSala,
+                      onTransferir: _abrirTransferencia,
+                      onDesfazer: () {
+                        setState(() {
+                          _salaNova = null;
+                        });
+                      },
+                    ),
 
-                    // CARTÃO DE VALIDAÇÃO
+                    // 3. VALIDAÇÃO (conferência)
                     PatrimonioValidationCard(
                       statusSelecionado: _statusSelecionado,
                       estadoSelecionado: _estadoSelecionado,
+                      observacaoController: _observacaoController,
                       onStatusChanged: (status) {
                         setState(() {
                           _statusSelecionado = status;
@@ -74,54 +324,70 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
                         });
                       },
                     ),
-
-                    //BOTÃO DE TRANSFERÊNCIA
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          //Direcionar para tela de transferência
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFF97316),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 14.0,
-                            horizontal: 16.0,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                        ),
-
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.fact_check, size: 24),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
-                                  'Transferir',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   ],
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Salvar em cima e Cancelar embaixo, fixos no rodapé
+  Widget _barraDeAcoes() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          // Ocupa só a altura dos botões (sem isso a barra tomaria a tela toda)
+          mainAxisSize: MainAxisSize.min,
+          // Estica os botões na largura toda
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton(
+              onPressed: _salvando ? null : _salvar,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppCores.azul,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: AppCores.azulDesabilitado,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _salvando
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Salvar',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: _salvando ? null : () => Navigator.pop(context),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: const BorderSide(color: AppCores.azul),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ],

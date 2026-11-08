@@ -13,6 +13,10 @@ class Patrimonio {
   final String observacoes;
   final String? imagem;
 
+  // Datas criadas automaticamente pela API (timestamps do MongoDB)
+  final DateTime? cadastradoEm;
+  final DateTime? atualizadoEm;
+
   Patrimonio({
     this.id,
     this.secretariaId,
@@ -26,7 +30,25 @@ class Patrimonio {
     required this.estadoConservacao,
     required this.observacoes,
     this.imagem,
+    this.cadastradoEm,
+    this.atualizadoEm,
   });
+
+  // Texto do status para mostrar na tela
+  String get statusFormatado {
+    if (status == 'conferido') return 'Conferido';
+    if (status == 'nao_localizado') return 'Não localizado';
+    return 'Pendente';
+  }
+
+  // Texto do estado de conservação para mostrar na tela.
+  String get estadoFormatado {
+    if (estadoConservacao == 'novo') return 'Novo';
+    if (estadoConservacao == 'regular') return 'Regular';
+    if (estadoConservacao == 'ruim') return 'Ruim';
+    if (estadoConservacao == 'inservivel') return 'Inservível';
+    return 'Bom';
+  }
 
   factory Patrimonio.fromJson(Map<String, dynamic> json) {
     final secretariaDados = json['secretaria'];
@@ -65,109 +87,10 @@ class Patrimonio {
       status: json['status'] as String? ?? 'pendente',
       estadoConservacao: json['estadoConservacao'] as String? ?? 'bom',
       observacoes: json['observacoes'] as String? ?? '',
+      imagem: json['imagem'] as String?,
+      // tryParse devolve null se a data vier vazia ou inválida
+      cadastradoEm: DateTime.tryParse(json['createdAt'] as String? ?? ''),
+      atualizadoEm: DateTime.tryParse(json['updatedAt'] as String? ?? ''),
     );
   }
-
-  static List<Patrimonio> patrimonioMock = [
-    Patrimonio(
-      numeroPatrimonio: 'PAT-001',
-      descricao: 'Notebook Dell Latitude 5420',
-      secretaria: 'TI',
-      sala: '101',
-      categoria: 'Notebook',
-      status: 'conferido',
-      estadoConservacao: 'bom',
-      observacoes: 'Equipamento em bom estado de conservação',
-    ),
-    Patrimonio(
-      numeroPatrimonio: 'PAT-002',
-      descricao: 'Monitor LG 24 polegadas',
-      secretaria: 'TI',
-      sala: '101',
-      categoria: 'Monitor',
-      status: 'conferido',
-      estadoConservacao: 'novo',
-      observacoes: '',
-    ),
-    Patrimonio(
-      numeroPatrimonio: 'PAT-003',
-      descricao: 'Cadeira de escritório ergonômica',
-      secretaria: 'RH',
-      sala: '205',
-      categoria: 'Móvel',
-      status: 'pendente',
-      estadoConservacao: 'bom',
-      observacoes: '',
-    ),
-    Patrimonio(
-      numeroPatrimonio: 'PAT-004',
-      descricao: 'Mesa de escritório em L',
-      secretaria: 'RH',
-      sala: '205',
-      categoria: 'Móvel',
-      status: 'conferido',
-      estadoConservacao: 'regular',
-      observacoes: 'Pequenos arranhões na superfície',
-    ),
-    Patrimonio(
-      numeroPatrimonio: 'PAT-005',
-      descricao: 'Impressora HP LaserJet Pro',
-      secretaria: 'Administrativo',
-      sala: '302',
-      categoria: 'Impressora',
-      status: 'pendente',
-      estadoConservacao: 'bom',
-      observacoes: '',
-    ),
-    Patrimonio(
-      numeroPatrimonio: 'PAT-006',
-      descricao: 'Projetor Epson PowerLite',
-      secretaria: 'TI',
-      sala: '101',
-      categoria: 'Projetor',
-      status: 'nao_localizado',
-      estadoConservacao: 'regular',
-      observacoes: 'Não encontrado na última conferência',
-    ),
-    Patrimonio(
-      numeroPatrimonio: 'PAT-007',
-      descricao: 'Teclado mecânico Logitech',
-      secretaria: 'TI',
-      sala: '102',
-      categoria: 'Periférico',
-      status: 'conferido',
-      estadoConservacao: 'novo',
-      observacoes: '',
-    ),
-    Patrimonio(
-      numeroPatrimonio: 'PAT-008',
-      descricao: 'Mouse sem fio Microsoft',
-      secretaria: 'TI',
-      sala: '102',
-      categoria: 'Periférico',
-      status: 'conferido',
-      estadoConservacao: 'bom',
-      observacoes: '',
-    ),
-    Patrimonio(
-      numeroPatrimonio: 'PAT-009',
-      descricao: 'Servidor Dell PowerEdge',
-      secretaria: 'TI',
-      sala: '110',
-      categoria: 'Servidor',
-      status: 'pendente',
-      estadoConservacao: 'bom',
-      observacoes: 'Equipamento de crítico',
-    ),
-    Patrimonio(
-      numeroPatrimonio: 'PAT-010',
-      descricao: 'Arquivo de aço 4 gavetas',
-      secretaria: 'Administrativo',
-      sala: '302',
-      categoria: 'Móvel',
-      status: 'conferido',
-      estadoConservacao: 'regular',
-      observacoes: '',
-    ),
-  ];
 }

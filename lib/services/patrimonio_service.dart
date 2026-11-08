@@ -1,34 +1,16 @@
 import 'dart:convert';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
+import 'package:projeto_inventario_patrimonial_frontend/services/api_config.dart';
 
 class PatrimonioService {
-  static const String baseUrl = 'http://localhost:3000/api/v1';
-
   Future<List<Patrimonio>> listarPatrimonios() async {
-    final usuario = FirebaseAuth.instance.currentUser;
-
-    if (usuario == null) {
-      throw Exception('Usuário não autenticado. Entre novamente.');
-    }
-
-    final token = await usuario.getIdToken();
-
-    if (token == null || token.isEmpty) {
-      throw Exception('Não foi possível validar sua sessão.');
-    }
+    final cabecalhos = await cabecalhosComToken();
 
     final resposta = await http
-        .get(
-          Uri.parse('$baseUrl/patrimonios'),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Accept': 'application/json',
-          },
-        )
+        .get(Uri.parse('$apiBaseUrl/patrimonios'), headers: cabecalhos)
         .timeout(const Duration(seconds: 15));
 
     if (resposta.statusCode == 200) {
@@ -66,6 +48,54 @@ class PatrimonioService {
     throw Exception(
       'Não foi possível carregar os patrimônios '
       '(HTTP ${resposta.statusCode}).',
+    );
+  }
+
+  /// Salva o resultado da conferência (status, estado e observações).
+  Future<void> atualizarPatrimonio({
+    required String id,
+    required String status,
+    required String estadoConservacao,
+    required String observacoes,
+  }) async {
+    final cabecalhos = await cabecalhosComToken();
+
+    final resposta = await http
+        .patch(
+          Uri.parse('$apiBaseUrl/patrimonios/$id'),
+          headers: cabecalhos,
+          body: jsonEncode({
+            'status': status,
+            'estadoConservacao': estadoConservacao,
+            'observacoes': observacoes,
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (resposta.statusCode == 200) return;
+
+    //a API explica o problema no campo "erro"
+    if (resposta.statusCode == 400) {
+      final dados = jsonDecode(utf8.decode(resposta.bodyBytes));
+      throw Exception(dados['erro'] ?? 'Dados inválidos.');
+    }
+
+    if (resposta.statusCode == 401) {
+      throw Exception('Sua sessão não é válida. Entre novamente.');
+    }
+
+    if (resposta.statusCode == 403) {
+      throw Exception(
+        'Você não possui permissão para alterar este patrimônio.',
+      );
+    }
+
+    if (resposta.statusCode == 404) {
+      throw Exception('Patrimônio não encontrado.');
+    }
+
+    throw Exception(
+      'Não foi possível salvar o patrimônio (HTTP ${resposta.statusCode}).',
     );
   }
 }
