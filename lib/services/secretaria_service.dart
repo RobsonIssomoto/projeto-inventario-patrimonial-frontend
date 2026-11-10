@@ -1,41 +1,94 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 import 'package:projeto_inventario_patrimonial_frontend/models/secretaria.dart';
 import 'package:projeto_inventario_patrimonial_frontend/services/api_config.dart';
 
 class SecretariaService {
-  /// Lista as secretarias ativas.
   Future<List<Secretaria>> listarSecretarias() async {
     final cabecalhos = await cabecalhosComToken();
 
-    final resposta = await http
-        .get(Uri.parse('$apiBaseUrl/secretarias'), headers: cabecalhos)
-        .timeout(const Duration(seconds: 15));
+    try {
+      final resposta = await dio.get<dynamic>(
+        '/secretarias',
+        options: Options(headers: cabecalhos),
+      );
 
-    if (resposta.statusCode == 200) {
-      final dados = jsonDecode(utf8.decode(resposta.bodyBytes));
+      final dados = resposta.data;
 
-      if (dados is! List) {
-        throw Exception('A API retornou as secretarias em formato inválido.');
+      final List lista;
+
+      if (dados is List) {
+        lista = dados;
+      } else if (dados is Map && dados['dados'] is List) {
+        lista = dados['dados'] as List;
+      } else if (dados is Map && dados['data'] is List) {
+        lista = dados['data'] as List;
+      } else {
+        throw Exception('A API retornou uma lista em formato inválido.');
       }
 
-      return dados
+      return lista
           .map<Secretaria>(
             (item) => Secretaria.fromJson(item as Map<String, dynamic>),
           )
-          .where((secretaria) => secretaria.ativa) // só as ativas
           .toList();
-    }
+    } on DioException catch (e) {
+      final codigo = e.response?.statusCode;
 
-    if (resposta.statusCode == 401) {
-      throw Exception('Sua sessão não é válida. Entre novamente.');
-    }
+      if (codigo == 401) {
+        throw Exception('Sua sessão não é válida. Entre novamente.');
+      }
 
-    throw Exception(
-      'Não foi possível carregar as secretarias '
-      '(HTTP ${resposta.statusCode}).',
-    );
+      if (codigo == 403) {
+        throw Exception(
+          'Você não possui permissão para consultar as secretarias.',
+        );
+      }
+
+      throw Exception(
+        'Não foi possível carregar as secretarias '
+        '(HTTP ${codigo ?? 'desconhecido'}).',
+      );
+    }
   }
+
+  // Future<void> atualizarSecretaria({
+  //   required String id,
+  //   required String nome,
+  //   required String sigla,
+  //   required String telefone,
+  //   required String email,
+  // }) async {
+  //   final cabecalhos = await cabecalhosComToken();
+
+  //   try {
+  //     await dio.put(
+  //       '/secretarias/$id',
+  //       options: Options(headers: cabecalhos),
+  //       data: {
+  //         'nome': nome,
+  //         'sigla': sigla,
+  //         'telefone': telefone,
+  //         'email': email,
+  //       },
+  //     );
+  //   } on DioException catch (e) {
+  //     final codigo = e.response?.statusCode;
+
+  //     if (codigo == 401) {
+  //       throw Exception('Sua sessão não é válida. Entre novamente.');
+  //     }
+
+  //     if (codigo == 403) {
+  //       throw Exception(
+  //         'Você não possui permissão para atualizar a secretaria.',
+  //       );
+  //     }
+
+  //     throw Exception(
+  //       'Não foi possível atualizar a secretaria '
+  //       '(HTTP ${codigo ?? 'desconhecido'}).',
+  //     );
+  //   }
+  // }
 }

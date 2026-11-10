@@ -1,11 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-/// Endereço da API usado por todos os services.
 const String apiBaseUrl = 'http://localhost:3000/api/v1';
 
-/// Monta os cabeçalhos das requisições com o token do usuário logado.
-///
-/// Token fica em um só lugar.
+final Dio dio = Dio(
+  BaseOptions(
+    baseUrl: apiBaseUrl,
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 15),
+  ),
+);
+
 Future<Map<String, String>> cabecalhosComToken() async {
   final usuario = FirebaseAuth.instance.currentUser;
 
