@@ -1,10 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:projeto_inventario_patrimonial_frontend/services/api_config.dart';
 
 ///Camada responsável por fazer requisições HTTP para a API, incluindo o token de autenticação do Firebase.
-
 class ApiRequester {
   Future<dynamic> get(String caminho) async {
     final cabecalhos = await cabecalhosComToken();
@@ -21,13 +19,18 @@ class ApiRequester {
     }
   }
 
-  Future<dynamic> post(String caminho, {
+  Future<dynamic> post(
+    String caminho, {
     required Map<String, dynamic> dados,
-  })async {
+  }) async {
     final cabecalhos = await cabecalhosComToken();
 
-    try{
-      final resposta = await dio.post<dynamic>(caminho, data: dados, options: Options(headers: cabecalhos));
+    try {
+      final resposta = await dio.post<dynamic>(
+        caminho,
+        data: dados,
+        options: Options(headers: cabecalhos),
+      );
       return _extrairDados(resposta);
     } on DioException catch (erro) {
       throw _traduzirErro(erro);

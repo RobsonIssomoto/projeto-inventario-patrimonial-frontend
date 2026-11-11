@@ -53,7 +53,8 @@ class SalaService {
 
     try {
       final resposta = await dio.get<dynamic>(
-        '/secretarias/$secretariaId/salas',
+        '/salas',
+        queryParameters: {'secretaria': secretariaId},
         options: Options(headers: cabecalhos),
       );
 

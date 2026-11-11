@@ -179,7 +179,6 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
                     const SizedBox(height: 8),
                     _cardOrigem(),
 
-                    // Ícone entre origem e destino
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
                       child: Center(

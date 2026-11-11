@@ -1,94 +1,32 @@
-import 'package:dio/dio.dart';
-
+import 'package:projeto_inventario_patrimonial_frontend/data/network/api_requester.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/secretaria.dart';
-import 'package:projeto_inventario_patrimonial_frontend/services/api_config.dart';
 
 class SecretariaService {
+  final ApiRequester _requester = ApiRequester();
+
   Future<List<Secretaria>> listarSecretarias() async {
-    final cabecalhos = await cabecalhosComToken();
+    final dados = await _requester.get('/secretarias');
 
-    try {
-      final resposta = await dio.get<dynamic>(
-        '/secretarias',
-        options: Options(headers: cabecalhos),
-      );
+    final lista = _extrairLista(dados);
 
-      final dados = resposta.data;
-
-      final List lista;
-
-      if (dados is List) {
-        lista = dados;
-      } else if (dados is Map && dados['dados'] is List) {
-        lista = dados['dados'] as List;
-      } else if (dados is Map && dados['data'] is List) {
-        lista = dados['data'] as List;
-      } else {
-        throw Exception('A API retornou uma lista em formato inválido.');
-      }
-
-      return lista
-          .map<Secretaria>(
-            (item) => Secretaria.fromJson(item as Map<String, dynamic>),
-          )
-          .toList();
-    } on DioException catch (e) {
-      final codigo = e.response?.statusCode;
-
-      if (codigo == 401) {
-        throw Exception('Sua sessão não é válida. Entre novamente.');
-      }
-
-      if (codigo == 403) {
-        throw Exception(
-          'Você não possui permissão para consultar as secretarias.',
-        );
-      }
-
-      throw Exception(
-        'Não foi possível carregar as secretarias '
-        '(HTTP ${codigo ?? 'desconhecido'}).',
-      );
-    }
+    return lista
+        .map((item) => Secretaria.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
-  // Future<void> atualizarSecretaria({
-  //   required String id,
-  //   required String nome,
-  //   required String sigla,
-  //   required String telefone,
-  //   required String email,
-  // }) async {
-  //   final cabecalhos = await cabecalhosComToken();
+  List<dynamic> _extrairLista(dynamic dados) {
+    if (dados is List) {
+      return dados;
+    }
 
-  //   try {
-  //     await dio.put(
-  //       '/secretarias/$id',
-  //       options: Options(headers: cabecalhos),
-  //       data: {
-  //         'nome': nome,
-  //         'sigla': sigla,
-  //         'telefone': telefone,
-  //         'email': email,
-  //       },
-  //     );
-  //   } on DioException catch (e) {
-  //     final codigo = e.response?.statusCode;
+    if (dados is Map && dados['dados'] is List) {
+      return dados['dados'] as List;
+    }
 
-  //     if (codigo == 401) {
-  //       throw Exception('Sua sessão não é válida. Entre novamente.');
-  //     }
+    if (dados is Map && dados['data'] is List) {
+      return dados['data'] as List;
+    }
 
-  //     if (codigo == 403) {
-  //       throw Exception(
-  //         'Você não possui permissão para atualizar a secretaria.',
-  //       );
-  //     }
-
-  //     throw Exception(
-  //       'Não foi possível atualizar a secretaria '
-  //       '(HTTP ${codigo ?? 'desconhecido'}).',
-  //     );
-  //   }
-  // }
+    throw Exception('A API retornou uma lista em formato inválido.');
+  }
 }

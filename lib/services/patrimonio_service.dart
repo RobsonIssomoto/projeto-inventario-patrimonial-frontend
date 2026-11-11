@@ -9,7 +9,7 @@ class PatrimonioService {
 
     try {
       final resposta = await dio.get<dynamic>(
-        'patrimonios',
+        '/patrimonios',
         options: Options(headers: cabecalhos),
       );
 
