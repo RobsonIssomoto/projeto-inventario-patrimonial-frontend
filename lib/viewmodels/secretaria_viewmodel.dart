@@ -1,8 +1,11 @@
+import 'package:projeto_inventario_patrimonial_frontend/repositories/secretaria_repository.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/secretaria.dart';
-import 'package:projeto_inventario_patrimonial_frontend/services/secretaria_service.dart';
 
 class SecretariaViewModel {
-  final SecretariaService _secretariaService = SecretariaService();
+  final SecretariaRepository _repository;
+
+  SecretariaViewModel({SecretariaRepository? repository})
+    : _repository = repository ?? SecretariaRepository();
 
   List<Secretaria> _secretarias = [];
   bool _carregando = false;
@@ -17,9 +20,9 @@ class SecretariaViewModel {
     _erro = null;
 
     try {
-      _secretarias = await _secretariaService.listarSecretarias();
+      _secretarias = await _repository.listarSecretarias();
     } catch (e) {
-      _erro = e.toString();
+      _erro = e.toString().replaceFirst('Exception: ', '');
     } finally {
       _carregando = false;
     }
