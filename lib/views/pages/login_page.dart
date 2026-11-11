@@ -11,14 +11,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Controladores para capturar o texto dos campos
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-  // Alternar a visibilidade da senha
   bool _senhaOculta = true;
-
-  // Login loading
   bool _carregando = false;
 
   final LoginViewModel _viewModel = LoginViewModel();
@@ -36,7 +32,6 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!isValid) return;
 
-    // Liga o loading
     setState(() {
       _carregando = true;
     });
@@ -56,7 +51,6 @@ class _LoginPageState extends State<LoginPage> {
     } catch (error) {
       if (!mounted) return;
 
-      // Desativa o loading
       setState(() {
         _carregando = false;
       });

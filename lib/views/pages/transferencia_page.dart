@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/sala.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/secretaria.dart';
+import 'package:projeto_inventario_patrimonial_frontend/viewmodels/secretaria_viewmodel.dart';
 import 'package:projeto_inventario_patrimonial_frontend/services/sala_service.dart';
-import 'package:projeto_inventario_patrimonial_frontend/services/secretaria_service.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 
-/// Transferência do patrimônio para outra secretaria.
-/// (Somente gerente e administrador)
 class TransferenciaPage extends StatefulWidget {
   final Patrimonio patrimonio;
 
@@ -18,13 +16,12 @@ class TransferenciaPage extends StatefulWidget {
 }
 
 class _TransferenciaPageState extends State<TransferenciaPage> {
-  final SecretariaService _secretariaService = SecretariaService();
+  final SecretariaViewModel _secretariaViewModel = SecretariaViewModel();
   final SalaService _salaService = SalaService();
 
   final TextEditingController _justificativaController =
       TextEditingController();
 
-  // Motivos que aparecem como chips
   static const List<String> _motivos = [
     'Remanejamento',
     'Substituição',
@@ -33,7 +30,6 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
     'Otimização',
   ];
 
-  // Secretarias de destino
   List<Secretaria> _secretarias = [];
   bool _carregandoSecretarias = true;
   String _erroSecretarias = '';
@@ -60,33 +56,26 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
   }
 
   Future<void> _carregarSecretarias() async {
-    try {
-      final secretarias = await _secretariaService.listarSecretarias();
+    await _secretariaViewModel.carregarSecretarias();
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      setState(() {
-        // A secretaria atual não aparece como destino
-        _secretarias = secretarias
-            .where((s) => s.id != widget.patrimonio.secretariaId)
-            .toList();
-        _carregandoSecretarias = false;
-      });
-    } catch (erro) {
-      if (!mounted) return;
+    setState(() {
+      _secretarias = _secretariaViewModel.secretarias
+          .where(
+            (secretaria) => secretaria.id != widget.patrimonio.secretariaId,
+          )
+          .toList();
 
-      setState(() {
-        _erroSecretarias = erro.toString().replaceFirst('Exception: ', '');
-        _carregandoSecretarias = false;
-      });
-    }
+      _carregandoSecretarias = _secretariaViewModel.carregando;
+      _erroSecretarias = _secretariaViewModel.erro ?? '';
+    });
   }
 
-  // Chamado quando o usuário escolhe a secretaria de destino
   Future<void> _aoEscolherSecretaria(String? secretariaId) async {
     setState(() {
       _secretariaDestinoId = secretariaId;
-      _salaDestinoId = null; // a sala depende da secretaria
+      _salaDestinoId = null;
       _salas = [];
       _carregandoSalas = secretariaId != null;
     });
@@ -436,14 +425,14 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
           const SizedBox(height: 14),
 
           // SECRETARIA
-          if (_carregandoSecretarias)
+          if (_secretariaViewModel.carregando)
             const Padding(
               padding: EdgeInsets.all(12),
               child: Center(child: CircularProgressIndicator()),
             )
-          else if (_erroSecretarias.isNotEmpty)
+          else if (_secretariaViewModel.erro != null)
             Text(
-              _erroSecretarias,
+              _secretariaViewModel.erro!,
               style: const TextStyle(color: AppCores.vermelho),
             )
           else
