@@ -1,8 +1,11 @@
 import 'package:projeto_inventario_patrimonial_frontend/models/sala.dart';
-import 'package:projeto_inventario_patrimonial_frontend/services/sala_service.dart';
+import 'package:projeto_inventario_patrimonial_frontend/repositories/sala_repository.dart';
 
 class SalaViewModel {
-  final SalaService _salaService = SalaService();
+  final SalaRepository _repository;
+
+  SalaViewModel({SalaRepository? repository})
+    : _repository = repository ?? SalaRepository();
 
   List<Sala> _salas = [];
   bool _carregando = false;
@@ -17,9 +20,23 @@ class SalaViewModel {
     _erro = null;
 
     try {
-      _salas = await _salaService.listarSalas();
+      _salas = await _repository.listarSalas();
     } catch (e) {
-      _erro = e.toString();
+      _erro = e.toString().replaceFirst('Exception: ', '');
+    } finally {
+      _carregando = false;
+    }
+  }
+
+  Future<void> carregarSalasDaSecretaria(String secretariaId) async {
+    _carregando = true;
+    _erro = null;
+    _salas = [];
+
+    try {
+      _salas = await _repository.listarSalasDaSecretaria(secretariaId);
+    } catch (e) {
+      _erro = e.toString().replaceFirst('Exception: ', '');
     } finally {
       _carregando = false;
     }
