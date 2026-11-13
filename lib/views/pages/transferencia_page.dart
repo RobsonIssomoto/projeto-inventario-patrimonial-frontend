@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/sala.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/secretaria.dart';
+import 'package:projeto_inventario_patrimonial_frontend/viewmodels/sala_viewmodel.dart';
 import 'package:projeto_inventario_patrimonial_frontend/viewmodels/secretaria_viewmodel.dart';
-import 'package:projeto_inventario_patrimonial_frontend/services/sala_service.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 
 class TransferenciaPage extends StatefulWidget {
@@ -17,7 +17,7 @@ class TransferenciaPage extends StatefulWidget {
 
 class _TransferenciaPageState extends State<TransferenciaPage> {
   final SecretariaViewModel _secretariaViewModel = SecretariaViewModel();
-  final SalaService _salaService = SalaService();
+  final SalaViewModel _salaViewModel = SalaViewModel();
 
   final TextEditingController _justificativaController =
       TextEditingController();
@@ -82,27 +82,20 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
 
     if (secretariaId == null) return;
 
-    try {
-      final salas = await _salaService.listarSalasDaSecretaria(secretariaId);
+    await _salaViewModel.carregarSalasDaSecretaria(secretariaId);
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      setState(() {
-        _salas = salas;
-        _carregandoSalas = false;
-      });
-    } catch (erro) {
-      if (!mounted) return;
+    setState(() {
+      _salas = _salaViewModel.salas;
+      _carregandoSalas = false;
+    });
 
-      setState(() {
-        _carregandoSalas = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(erro.toString().replaceFirst('Exception: ', '')),
-        ),
-      );
+    final erro = _salaViewModel.erro;
+    if (erro != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao carregar salas: $erro')));
     }
   }
 
@@ -448,7 +441,7 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
                     ),
                   )
                   .toList(),
-              onChanged: _aoEscolherSecretaria,
+              onChanged: _carregandoSalas ? null : _aoEscolherSecretaria,
             ),
           const SizedBox(height: 14),
 
