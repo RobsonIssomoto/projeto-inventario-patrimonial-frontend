@@ -4,7 +4,10 @@ import 'package:projeto_inventario_patrimonial_frontend/services/api_config.dart
 
 ///Camada responsável por fazer requisições HTTP para a API, incluindo o token de autenticação do Firebase.
 class ApiRequester {
-  Future<dynamic> get(String caminho, {Map<String, dynamic>? queryParameters,}) async {
+  Future<dynamic> get(
+    String caminho, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
     final cabecalhos = await cabecalhosComToken();
 
     try {
@@ -57,6 +60,24 @@ class ApiRequester {
     }
   }
 
+  Future<dynamic> patch(
+    String caminho, {
+    required Map<String, dynamic> dados,
+  }) async {
+    final cabecalhos = await cabecalhosComToken();
+
+    try {
+      final resposta = await dio.patch<dynamic>(
+        caminho,
+        data: dados,
+        options: Options(headers: cabecalhos),
+      );
+      return _extrairDados(resposta);
+    } on DioException catch (erro) {
+      throw _traduzirErro(erro);
+    }
+  }
+
   Future<dynamic> delete(String caminho) async {
     final cabecalhos = await cabecalhosComToken();
 
@@ -88,6 +109,16 @@ class ApiRequester {
     }
 
     if (codigo == 400) {
+      final dados = erro.response?.data;
+
+      if (dados is Map) {
+        final mensagem = dados['erro'] ?? dados['message'];
+
+        if (mensagem is String && mensagem.trim().isNotEmpty) {
+          return Exception(mensagem);
+        }
+      }
+
       return Exception('Dados inválidos. Verifique as informações enviadas.');
     }
 

@@ -1,55 +1,24 @@
-import 'package:dio/dio.dart';
-
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
-import 'package:projeto_inventario_patrimonial_frontend/services/api_config.dart';
+import 'package:projeto_inventario_patrimonial_frontend/data/network/api_requester.dart';
 
 class PatrimonioService {
+  final ApiRequester _requester;
+
+  PatrimonioService({ApiRequester? requester})
+    : _requester = requester ?? ApiRequester();
+
   Future<List<Patrimonio>> listarPatrimonios() async {
-    final cabecalhos = await cabecalhosComToken();
+    final dados = await _requester.get('/patrimonios');
 
-    try {
-      final resposta = await dio.get<dynamic>(
-        '/patrimonios',
-        options: Options(headers: cabecalhos),
-      );
+    return _converterLista(dados);
+  }
 
-      final dados = resposta.data;
-
-      final List lista;
-
-      if (dados is List) {
-        lista = dados;
-      } else if (dados is Map && dados['dados'] is List) {
-        lista = dados['dados'] as List;
-      } else if (dados is Map && dados['data'] is List) {
-        lista = dados['data'] as List;
-      } else {
-        throw Exception('A API retornou uma lista em formato inválido.');
-      }
-
-      return lista
-          .map<Patrimonio>(
-            (item) => Patrimonio.fromJson(item as Map<String, dynamic>),
-          )
-          .toList();
-    } on DioException catch (e) {
-      final codigo = e.response?.statusCode;
-
-      if (codigo == 401) {
-        throw Exception('Sua sessão não é válida. Entre novamente.');
-      }
-
-      if (codigo == 403) {
-        throw Exception(
-          'Você não possui permissão para consultar os patrimônios.',
-        );
-      }
-
-      throw Exception(
-        'Não foi possível carregar os patrimônios '
-        '(HTTP ${codigo ?? 'desconhecido'}).',
-      );
-    }
+  Future<List<Patrimonio>> listarPatrimoniosDaSala(String salaId) async {
+    final dados = await _requester.get(
+      '/patrimonios',
+      queryParameters: {'sala': salaId},
+    );
+    return _converterLista(dados);
   }
 
   Future<void> atualizarPatrimonio({
@@ -58,44 +27,31 @@ class PatrimonioService {
     required String estadoConservacao,
     required String observacoes,
   }) async {
-    final cabecalhos = await cabecalhosComToken();
+    await _requester.patch(
+      '/patrimonios/$id',
+      dados: {
+        'status': status,
+        'estadoConservacao': estadoConservacao,
+        'observacoes': observacoes,
+      },
+    );
+  }
 
-    try {
-      await dio.patch(
-        '/patrimonios/$id',
-        options: Options(headers: cabecalhos),
-        data: {
-          'status': status,
-          'estadoConservacao': estadoConservacao,
-          'observacoes': observacoes,
-        },
-      );
-    } on DioException catch (e) {
-      final codigo = e.response?.statusCode;
-      final dados = e.response?.data;
-
-      if (codigo == 400 && dados is Map && dados['erro'] is String) {
-        throw Exception(dados['erro']);
-      }
-
-      if (codigo == 401) {
-        throw Exception('Sua sessão não é válida. Entre novamente.');
-      }
-
-      if (codigo == 403) {
-        throw Exception(
-          'Você não possui permissão para alterar este patrimônio.',
-        );
-      }
-
-      if (codigo == 404) {
-        throw Exception('Patrimônio não encontrado.');
-      }
-
-      throw Exception(
-        'Não foi possível salvar o patrimônio.'
-        '(HTTP ${codigo ?? 'desconhecido'}).',
-      );
+  List<Patrimonio> _converterLista(dynamic dados) {
+    final List<dynamic> lista;
+    if (dados is List) {
+      lista = dados;
+    } else if (dados is Map && dados['dados'] is List) {
+      lista = dados['dados'] as List;
+    } else if (dados is Map && dados['data'] is List) {
+      lista = dados['data'] as List;
+    } else {
+      throw Exception('A API retornou uma lista em formato inválido.');
     }
+    return lista
+        .map<Patrimonio>(
+          (item) => Patrimonio.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
   }
 }
