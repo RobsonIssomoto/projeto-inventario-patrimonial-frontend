@@ -8,6 +8,7 @@ import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_validation_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/viewmodels/sala_viewmodel.dart';
 import 'package:projeto_inventario_patrimonial_frontend/viewmodels/inventario_viewmodel.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/historico_movimentacoes_page.dart';
 
 class PatrimonioDetail extends StatefulWidget {
   final Patrimonio patrimonio;
@@ -218,9 +219,21 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
   }
 
   void _abrirHistorico() {
-    // TODO: abrir a tela de Histórico de Movimentações
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Histórico de movimentações em breve.')),
+    final patrimonioId = widget.patrimonio.id;
+
+    if (patrimonioId == null || patrimonioId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Patrimônio não identificado.')),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            HistoricoMovimentacoesPage(patrimonioId: patrimonioId),
+      ),
     );
   }
 
