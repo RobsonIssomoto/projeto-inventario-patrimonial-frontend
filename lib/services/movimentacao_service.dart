@@ -35,4 +35,24 @@ class MovimentacaoService {
         )
         .toList();
   }
+
+  Future<void> criarTransferencia({
+    required String patrimonioId,
+    required String secretariaDestinoId,
+    required String motivo,
+    required String justificativa,
+  }) async {
+    await _requester.post(
+      '/movimentacoes',
+      dados: {
+        'patrimonioId': patrimonioId,
+        'tipo': 'transferencia',
+        'dados': {
+          'secretariaDestino': secretariaDestinoId,
+          'motivo': motivo,
+          'justificativa': justificativa,
+        },
+      },
+    );
+  }
 }

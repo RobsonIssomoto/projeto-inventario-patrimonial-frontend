@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
-import 'package:projeto_inventario_patrimonial_frontend/models/sala.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/secretaria.dart';
 import 'package:projeto_inventario_patrimonial_frontend/viewmodels/sala_viewmodel.dart';
 import 'package:projeto_inventario_patrimonial_frontend/viewmodels/secretaria_viewmodel.dart';
+import 'package:projeto_inventario_patrimonial_frontend/viewmodels/movimentacao_viewmodel.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 
 class TransferenciaPage extends StatefulWidget {
@@ -18,6 +18,7 @@ class TransferenciaPage extends StatefulWidget {
 class _TransferenciaPageState extends State<TransferenciaPage> {
   final SecretariaViewModel _secretariaViewModel = SecretariaViewModel();
   final SalaViewModel _salaViewModel = SalaViewModel();
+  final MovimentacaoViewModel _movimentacaoViewModel = MovimentacaoViewModel();
 
   final TextEditingController _justificativaController =
       TextEditingController();
@@ -34,13 +35,9 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
   bool _carregandoSecretarias = true;
   String _erroSecretarias = '';
 
-  // Salas da secretaria escolhida
-  List<Sala> _salas = [];
-  bool _carregandoSalas = false;
+  bool _enviando = false;
 
-  // Escolhas do usuário
   String? _secretariaDestinoId;
-  String? _salaDestinoId;
   String? _motivoSelecionado;
 
   @override
@@ -75,21 +72,11 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
   Future<void> _aoEscolherSecretaria(String? secretariaId) async {
     setState(() {
       _secretariaDestinoId = secretariaId;
-      _salaDestinoId = null;
-      _salas = [];
-      _carregandoSalas = secretariaId != null;
     });
 
     if (secretariaId == null) return;
 
-    await _salaViewModel.carregarSalasDaSecretaria(secretariaId);
-
     if (!mounted) return;
-
-    setState(() {
-      _salas = _salaViewModel.salas;
-      _carregandoSalas = false;
-    });
 
     final erro = _salaViewModel.erro;
     if (erro != null) {
@@ -99,15 +86,17 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
     }
   }
 
-  void _confirmar() {
+  Future<void> _confirmar() async {
+    final justificativa = _justificativaController.text.trim();
+
     String? mensagemErro;
 
     if (_secretariaDestinoId == null) {
       mensagemErro = 'Selecione a nova secretaria.';
-    } else if (_salaDestinoId == null) {
-      mensagemErro = 'Selecione a nova sala.';
     } else if (_motivoSelecionado == null) {
       mensagemErro = 'Selecione o motivo da transferência.';
+    } else if (justificativa.length < 10) {
+      mensagemErro = 'Escreva uma justificativa com pelo menos 10 caracteres.';
     }
 
     if (mensagemErro != null) {
@@ -116,16 +105,42 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
       return;
     }
 
-    // TODO(backend): enviar a transferência (POST /movimentacoes).
-    // Hoje a API só registra a movimentação e não altera o patrimônio,
-    // e ainda falta a confirmação de recebimento pela secretaria destino.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Envio da transferência ainda não disponível (aguardando a API).',
+    setState(() {
+      _enviando = true;
+    });
+
+    try {
+      await _movimentacaoViewModel.criarTransferencia(
+        patrimonioId: widget.patrimonio.id ?? '',
+        secretariaDestinoId: _secretariaDestinoId!,
+        motivo: _motivoSelecionado!,
+        justificativa: justificativa,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Transferência enviada. Aguardando recebimento pela secretaria de destino.',
+          ),
         ),
-      ),
-    );
+      );
+
+      Navigator.pop(context);
+    } catch (erro) {
+      if (!mounted) return;
+
+      setState(() {
+        _enviando = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(erro.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
+    }
   }
 
   @override
@@ -236,7 +251,7 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
 
                     // BOTÕES
                     ElevatedButton(
-                      onPressed: _confirmar,
+                      onPressed: _enviando ? null : _confirmar,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppCores.azul,
                         foregroundColor: Colors.white,
@@ -245,13 +260,22 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Confirmar',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: _enviando
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Confirmar',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton(
@@ -441,46 +465,9 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
                     ),
                   )
                   .toList(),
-              onChanged: _carregandoSalas ? null : _aoEscolherSecretaria,
+              onChanged: _aoEscolherSecretaria,
             ),
           const SizedBox(height: 14),
-
-          // SALA (só libera depois de escolher a secretaria)
-          if (_carregandoSalas)
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else
-            DropdownButtonFormField<String>(
-              // A key muda junto com a secretaria: assim o campo
-              // de sala é recriado vazio quando a secretaria muda.
-              key: ValueKey(_secretariaDestinoId),
-              initialValue: _salaDestinoId,
-              isExpanded: true,
-              decoration: _decoracaoCampo('Nova Sala / Dependência'),
-              hint: Text(
-                _secretariaDestinoId == null
-                    ? 'Escolha a secretaria primeiro'
-                    : 'Selecione a sala',
-              ),
-              items: _salas
-                  .map(
-                    (sala) => DropdownMenuItem<String>(
-                      value: sala.id,
-                      child: Text(sala.nome),
-                    ),
-                  )
-                  .toList(),
-              // null desabilita o campo
-              onChanged: _secretariaDestinoId == null
-                  ? null
-                  : (salaId) {
-                      setState(() {
-                        _salaDestinoId = salaId;
-                      });
-                    },
-            ),
         ],
       ),
     );

@@ -10,4 +10,18 @@ class MovimentacaoRepository {
   Future<List<Movimentacao>> listarPorPatrimonio(String patrimonioId) {
     return _service.listarPorPatrimonio(patrimonioId);
   }
+
+  Future<void> criarTransferencia({
+    required String patrimonioId,
+    required String secretariaDestinoId,
+    required String motivo,
+    required String justificativa,
+  }) {
+    return _service.criarTransferencia(
+      patrimonioId: patrimonioId,
+      secretariaDestinoId: secretariaDestinoId,
+      motivo: motivo,
+      justificativa: justificativa,
+    );
+  }
 }

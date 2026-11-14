@@ -27,4 +27,18 @@ class MovimentacaoViewModel {
       _carregando = false;
     }
   }
+
+  Future<void> criarTransferencia({
+    required String patrimonioId,
+    required String secretariaDestinoId,
+    required String motivo,
+    required String justificativa,
+  }) async {
+    await _repository.criarTransferencia(
+      patrimonioId: patrimonioId,
+      secretariaDestinoId: secretariaDestinoId,
+      motivo: motivo,
+      justificativa: justificativa,
+    );
+  }
 }
