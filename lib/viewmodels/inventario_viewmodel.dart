@@ -70,4 +70,18 @@ class InventarioViewModel {
 
     return resultado;
   }
+
+  Future<void> atualizarPatrimonio({
+    required String id,
+    required String status,
+    required String estadoConservacao,
+    required String observacoes,
+  }) async {
+    await _repository.atualizarPatrimonio(
+      id: id,
+      status: status,
+      estadoConservacao: estadoConservacao,
+      observacoes: observacoes,
+    );
+  }
 }

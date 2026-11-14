@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/sala.dart';
-import 'package:projeto_inventario_patrimonial_frontend/services/patrimonio_service.dart';
 import 'package:projeto_inventario_patrimonial_frontend/services/sala_service.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/transferencia_page.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/localizacao_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_resumo_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_validation_card.dart';
+import 'package:projeto_inventario_patrimonial_frontend/viewmodels/inventario_viewmodel.dart';
 
 class PatrimonioDetail extends StatefulWidget {
   final Patrimonio patrimonio;
@@ -19,7 +19,7 @@ class PatrimonioDetail extends StatefulWidget {
 }
 
 class _PatrimonioDetailState extends State<PatrimonioDetail> {
-  final PatrimonioService _patrimonioService = PatrimonioService();
+  final InventarioViewModel _inventarioViewModel = InventarioViewModel();
   final SalaService _salaService = SalaService();
 
   final TextEditingController _observacaoController = TextEditingController();
@@ -171,7 +171,7 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
     });
 
     try {
-      await _patrimonioService.atualizarPatrimonio(
+      await _inventarioViewModel.atualizarPatrimonio(
         id: widget.patrimonio.id ?? '',
         status: _statusSelecionado,
         estadoConservacao: _estadoSelecionado,
