@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/sala.dart';
-import 'package:projeto_inventario_patrimonial_frontend/services/sala_service.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/transferencia_page.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/localizacao_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_resumo_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_validation_card.dart';
+import 'package:projeto_inventario_patrimonial_frontend/viewmodels/sala_viewmodel.dart';
 import 'package:projeto_inventario_patrimonial_frontend/viewmodels/inventario_viewmodel.dart';
 
 class PatrimonioDetail extends StatefulWidget {
@@ -20,11 +20,10 @@ class PatrimonioDetail extends StatefulWidget {
 
 class _PatrimonioDetailState extends State<PatrimonioDetail> {
   final InventarioViewModel _inventarioViewModel = InventarioViewModel();
-  final SalaService _salaService = SalaService();
+  final SalaViewModel _salaViewModel = SalaViewModel();
 
   final TextEditingController _observacaoController = TextEditingController();
 
-  // Valores da API ("conferido", "bom"...)
   late String _statusSelecionado;
   late String _estadoSelecionado;
 
@@ -62,10 +61,8 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
       return;
     }
 
-    final salasFuture = _salaService.listarSalasDaSecretaria(secretariaId);
+    final salasFuture = _salaViewModel.buscarSalasDaSecretaria(secretariaId);
 
-    // Abre uma lista de salas na parte de baixo da tela.
-    // Quando o usuário toca em uma sala, ela volta para cá.
     final salaEscolhida = await showModalBottomSheet<Sala>(
       context: context,
       showDragHandle: true,

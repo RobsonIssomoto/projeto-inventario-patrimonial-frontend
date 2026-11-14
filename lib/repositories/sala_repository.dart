@@ -13,4 +13,8 @@ class SalaRepository {
   Future<List<Sala>> listarSalasDaSecretaria(String secretariaId) {
     return _service.listarSalasDaSecretaria(secretariaId);
   }
+
+  Future<List<Sala>> buscarSalasDaSecretaria(String secretariaId) {
+    return _service.listarSalasDaSecretaria(secretariaId);
+  }
 }

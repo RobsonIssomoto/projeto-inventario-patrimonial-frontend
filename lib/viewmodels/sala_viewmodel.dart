@@ -41,4 +41,9 @@ class SalaViewModel {
       _carregando = false;
     }
   }
+
+  Future<List<Sala>> buscarSalasDaSecretaria(String secretariaId) {
+    return _repository.buscarSalasDaSecretaria(secretariaId);
+  }
+  
 }

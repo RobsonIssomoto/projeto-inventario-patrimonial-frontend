@@ -57,14 +57,15 @@ class InventarioViewModel {
 
     if (ordenarPor == 'numero') {
       resultado.sort(
-        (a, b) => a.numeroPatrimonio.toLowerCase().compareTo(
-          b.numeroPatrimonio.toLowerCase(),
-        ),
+        (patrimonio, outroPatrimonio) => patrimonio.numeroPatrimonio
+            .toLowerCase()
+            .compareTo(outroPatrimonio.numeroPatrimonio.toLowerCase()),
       );
     } else {
       resultado.sort(
-        (a, b) =>
-            a.descricao.toLowerCase().compareTo(b.descricao.toLowerCase()),
+        (patrimonio, outroPatrimonio) => patrimonio.descricao
+            .toLowerCase()
+            .compareTo(outroPatrimonio.descricao.toLowerCase()),
       );
     }
 
