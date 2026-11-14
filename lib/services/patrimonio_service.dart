@@ -26,15 +26,19 @@ class PatrimonioService {
     required String status,
     required String estadoConservacao,
     required String observacoes,
+    String? salaId,
   }) async {
-    await _requester.patch(
-      '/patrimonios/$id',
-      dados: {
-        'status': status,
-        'estadoConservacao': estadoConservacao,
-        'observacoes': observacoes,
-      },
-    );
+    final dados = {
+      'status': status,
+      'estadoConservacao': estadoConservacao,
+      'observacoes': observacoes,
+    };
+
+    if (salaId != null) {
+      dados['sala'] = salaId;
+    }
+
+    await _requester.patch('/patrimonios/$id', dados: dados);
   }
 
   List<Patrimonio> _converterLista(dynamic dados) {

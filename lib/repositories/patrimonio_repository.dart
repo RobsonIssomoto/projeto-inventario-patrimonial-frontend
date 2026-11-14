@@ -15,12 +15,14 @@ class PatrimonioRepository {
     required String status,
     required String estadoConservacao,
     required String observacoes,
+    String? salaId,
   }) {
     return _service.atualizarPatrimonio(
       id: id,
       status: status,
       estadoConservacao: estadoConservacao,
       observacoes: observacoes,
+      salaId: salaId,
     );
   }
 }

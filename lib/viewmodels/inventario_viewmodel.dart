@@ -77,12 +77,14 @@ class InventarioViewModel {
     required String status,
     required String estadoConservacao,
     required String observacoes,
+    String? salaId,
   }) async {
     await _repository.atualizarPatrimonio(
       id: id,
       status: status,
       estadoConservacao: estadoConservacao,
       observacoes: observacoes,
+      salaId: salaId,
     );
   }
 }

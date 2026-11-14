@@ -173,26 +173,18 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
         status: _statusSelecionado,
         estadoConservacao: _estadoSelecionado,
         observacoes: _observacaoController.text.trim(),
+        salaId: _salaNova?.id,
       );
 
       if (!mounted) return;
 
-      // Guarda o messenger antes de fechar a tela
       final messenger = ScaffoldMessenger.of(context);
 
-      // true avisa a tela anterior que precisa recarregar a lista
       Navigator.pop(context, true);
 
-      // TODO(backend): a API ainda não salva a troca de sala
-      // (o PATCH /patrimonios/:id ignora o campo "sala").
       if (_salaNova != null) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Conferência salva. A troca de sala ainda não é '
-              'salva pela API.',
-            ),
-          ),
+          const SnackBar(content: Text('Patrimônio atualizado com sucesso.')),
         );
       } else {
         messenger.showSnackBar(
