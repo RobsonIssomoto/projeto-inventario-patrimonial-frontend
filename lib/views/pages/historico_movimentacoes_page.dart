@@ -58,12 +58,68 @@ class _HistoricoMovimentacoesPageState
     }
 
     if (movimentacao.tipo == 'transferencia') {
-      return '${movimentacao.secretaria} → ${movimentacao.salaDestino}';
+      final origem = movimentacao.secretariaOrigem;
+      final destino = movimentacao.secretariaDestino;
+
+      final nomeOrigem = origem != null && origem.isNotEmpty
+          ? origem
+          : movimentacao.secretaria;
+
+      final nomeDestino = destino != null && destino.isNotEmpty
+          ? destino
+          : 'Destino não informado';
+
+      return '$nomeOrigem → $nomeDestino';
     }
 
     return movimentacao.observacoes?.isNotEmpty == true
         ? movimentacao.observacoes!
         : 'Sem descrição';
+  }
+
+  Future<void> _cancelarTransferencia(String movimentacaoId) async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancelar transferência'),
+        content: const Text(
+          'Deseja realmente cancelar esta transferência pendente?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Não'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Sim, cancelar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmado != true) return;
+
+    await _viewModel.cancelarTransferencia(movimentacaoId);
+
+    if (!mounted) return;
+
+    final erro = _viewModel.erro;
+
+    if (erro != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(erro)));
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Transferência cancelada com sucesso.')),
+    );
+
+    await _carregar();
   }
 
   @override
@@ -141,8 +197,11 @@ class _HistoricoMovimentacoesPageState
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    _statusTransferencia(movimentacao.statusTransferencia),
                   ],
                 ),
+
                 const SizedBox(height: 8),
                 Text(_descricaoMovimentacao(movimentacao)),
                 const SizedBox(height: 8),
@@ -161,11 +220,65 @@ class _HistoricoMovimentacoesPageState
                     color: AppCores.textoSecundario,
                   ),
                 ),
+                if (movimentacao.tipo == 'transferencia' &&
+                    movimentacao.statusTransferencia == 'pendente') ...[
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _cancelarTransferencia(movimentacao.id),
+                      icon: const Icon(Icons.cancel_outlined, size: 18),
+                      label: const Text('Cancelar transferência'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red.shade700,
+                        side: BorderSide(color: Colors.red.shade300),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _statusTransferencia(String? status) {
+    final String texto;
+    final Color cor;
+
+    switch (status) {
+      case 'pendente':
+        texto = 'Pendente';
+        cor = Colors.orange.shade900;
+        break;
+      case 'recebida':
+        texto = 'Recebida';
+        cor = Colors.green.shade800;
+        break;
+      case 'cancelada':
+        texto = 'Cancelada';
+        cor = Colors.red.shade700;
+        break;
+      default:
+        texto = 'Status não informado';
+        cor = Colors.grey.shade700;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: cor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        texto,
+        style: TextStyle(color: cor, fontSize: 12, fontWeight: FontWeight.w600),
+      ),
     );
   }
 }

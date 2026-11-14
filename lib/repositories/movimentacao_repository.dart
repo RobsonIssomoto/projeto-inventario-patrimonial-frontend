@@ -24,4 +24,8 @@ class MovimentacaoRepository {
       justificativa: justificativa,
     );
   }
+
+  Future<void> cancelarTransferencia(String movimentacaoId) {
+    return _service.cancelarTransferencia(movimentacaoId);
+  }
 }

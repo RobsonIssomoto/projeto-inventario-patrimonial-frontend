@@ -55,4 +55,11 @@ class MovimentacaoService {
       },
     );
   }
+
+  Future<void> cancelarTransferencia(String movimentacaoId) async {
+    await _requester.patch(
+      '/movimentacoes/$movimentacaoId/cancelar',
+      dados: {},
+    );
+  }
 }

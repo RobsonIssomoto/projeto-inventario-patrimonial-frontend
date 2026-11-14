@@ -41,4 +41,27 @@ class MovimentacaoViewModel {
       justificativa: justificativa,
     );
   }
+
+  Future<bool> existeTransferenciaPendente(String patrimonioId) async {
+    final movimentacoes = await _repository.listarPorPatrimonio(patrimonioId);
+
+    return movimentacoes.any(
+      (movimentacao) =>
+          movimentacao.tipo == 'transferencia' &&
+          movimentacao.status == 'pendente',
+    );
+  }
+
+  Future<void> cancelarTransferencia(String movimentacaoId) async {
+    _carregando = true;
+    _erro = null;
+
+    try {
+      await _repository.cancelarTransferencia(movimentacaoId);
+    } catch (erro) {
+      _erro = erro.toString().replaceFirst('Exception: ', '');
+    } finally {
+      _carregando = false;
+    }
+  }
 }

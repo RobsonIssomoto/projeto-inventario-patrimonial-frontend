@@ -8,10 +8,13 @@ class Movimentacao {
   final DateTime dataHora;
   final String? salaOrigem;
   final String? salaDestino;
+  final String? secretariaOrigem;
+  final String? secretariaDestino;
   final String? motivo;
   final String? status;
   final String? estadoConservacao;
   final String? observacoes;
+  final String? statusTransferencia;
 
   Movimentacao({
     required this.id,
@@ -23,10 +26,13 @@ class Movimentacao {
     required this.dataHora,
     this.salaOrigem,
     this.salaDestino,
+    this.secretariaOrigem,
+    this.secretariaDestino,
     this.motivo,
     this.status,
     this.estadoConservacao,
     this.observacoes,
+    this.statusTransferencia,
   });
 
   factory Movimentacao.fromJson(Map<String, dynamic> json) {
@@ -42,10 +48,13 @@ class Movimentacao {
       dataHora: DateTime.parse(json['dataHora'].toString()),
       salaOrigem: _nomeReferencia(dados['salaOrigem']),
       salaDestino: _nomeReferencia(dados['salaDestino']),
+      secretariaOrigem: _nomeReferencia(dados['secretariaOrigem']),
+      secretariaDestino: _nomeReferencia(dados['secretariaDestino']),
       motivo: dados['motivo']?.toString(),
       status: dados['status']?.toString(),
       estadoConservacao: dados['estadoConservacao']?.toString(),
       observacoes: dados['observacoes']?.toString(),
+      statusTransferencia: json['status']?.toString(),
     );
   }
 

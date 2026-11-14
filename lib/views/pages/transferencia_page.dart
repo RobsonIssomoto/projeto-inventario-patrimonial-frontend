@@ -89,6 +89,14 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
   Future<void> _confirmar() async {
     final justificativa = _justificativaController.text.trim();
 
+    final patrimonioId = widget.patrimonio.id;
+
+    if (patrimonioId == null || patrimonioId.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Patrimônio inválido.')));
+      return;
+    }
+
     String? mensagemErro;
 
     if (_secretariaDestinoId == null) {
@@ -111,7 +119,7 @@ class _TransferenciaPageState extends State<TransferenciaPage> {
 
     try {
       await _movimentacaoViewModel.criarTransferencia(
-        patrimonioId: widget.patrimonio.id ?? '',
+        patrimonioId: patrimonioId,
         secretariaDestinoId: _secretariaDestinoId!,
         motivo: _motivoSelecionado!,
         justificativa: justificativa,
