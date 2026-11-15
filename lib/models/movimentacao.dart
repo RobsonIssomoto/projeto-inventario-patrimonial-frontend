@@ -15,6 +15,10 @@ class Movimentacao {
   final String? estadoConservacao;
   final String? observacoes;
   final String? statusTransferencia;
+  final String? numeroPatrimonio;
+  final String? descricaoPatrimonio;
+  final String? secretariaDestinoId;
+  final String? justificativa;
 
   Movimentacao({
     required this.id,
@@ -33,16 +37,27 @@ class Movimentacao {
     this.estadoConservacao,
     this.observacoes,
     this.statusTransferencia,
+    this.numeroPatrimonio,
+    this.descricaoPatrimonio,
+    this.secretariaDestinoId,
+    this.justificativa,
   });
 
   factory Movimentacao.fromJson(Map<String, dynamic> json) {
     final dados = json['dados'] as Map<String, dynamic>? ?? {};
+    final patrimonioJson = json['patrimonio'];
+
+    final patrimonioDetalhado = patrimonioJson is Map ? patrimonioJson : null;
 
     return Movimentacao(
       id: json['_id']?.toString() ?? '',
       tipo: json['tipo']?.toString() ?? '',
       usuario: _nomeReferencia(json['usuario']),
-      patrimonio: json['patrimonio']?.toString() ?? '',
+      patrimonio: _idReferencia(patrimonioJson),
+      numeroPatrimonio: patrimonioDetalhado?['numeroPatrimonio']?.toString(),
+      descricaoPatrimonio: patrimonioDetalhado?['descricao']?.toString(),
+      secretariaDestinoId: _idReferencia(dados['secretariaDestino']),
+      justificativa: dados['justificativa']?.toString(),
       secretaria: _nomeReferencia(json['secretaria']),
       sala: _nomeReferencia(json['sala']),
       dataHora: DateTime.parse(json['dataHora'].toString()),
@@ -61,6 +76,14 @@ class Movimentacao {
   static String _nomeReferencia(dynamic valor) {
     if (valor is Map) {
       return valor['nome']?.toString() ?? '';
+    }
+
+    return valor?.toString() ?? '';
+  }
+
+  static String _idReferencia(dynamic valor) {
+    if (valor is Map) {
+      return valor['_id']?.toString() ?? '';
     }
 
     return valor?.toString() ?? '';

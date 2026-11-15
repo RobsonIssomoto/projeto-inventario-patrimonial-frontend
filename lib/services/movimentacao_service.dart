@@ -62,4 +62,20 @@ class MovimentacaoService {
       dados: {},
     );
   }
+
+  Future<List<Movimentacao>> listarRecebimentosPendentes() async {
+    final dados = await _requester.get('/movimentacoes/recebimentos');
+
+    return _converterLista(dados);
+  }
+
+  Future<void> receberTransferencia({
+    required String movimentacaoId,
+    required String salaDestinoId,
+  }) async {
+    await _requester.patch(
+      '/movimentacoes/$movimentacaoId/receber',
+      dados: {'salaDestinoId': salaDestinoId},
+    );
+  }
 }

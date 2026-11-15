@@ -28,4 +28,18 @@ class MovimentacaoRepository {
   Future<void> cancelarTransferencia(String movimentacaoId) {
     return _service.cancelarTransferencia(movimentacaoId);
   }
+
+  Future<List<Movimentacao>> listarRecebimentosPendentes() {
+    return _service.listarRecebimentosPendentes();
+  }
+
+  Future<void> receberTransferencia({
+    required String movimentacaoId,
+    required String salaDestinoId,
+  }) {
+    return _service.receberTransferencia(
+      movimentacaoId: movimentacaoId,
+      salaDestinoId: salaDestinoId,
+    );
+  }
 }

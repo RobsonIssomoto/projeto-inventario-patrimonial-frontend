@@ -9,11 +9,23 @@ class InicioPage extends StatelessWidget {
     super.key,
     required this.onEscanear,
     required this.onAbrirInventario,
+    required this.onAbrirRecebimentos,
+    required this.podeReceberTransferencias,
+    required this.carregandoPerfil,
+    required this.erroPerfil,
+    required this.onTentarCarregarPerfil,
   });
 
   // Ações da Home
   final VoidCallback onEscanear;
   final VoidCallback onAbrirInventario;
+  final VoidCallback onAbrirRecebimentos;
+  final VoidCallback onTentarCarregarPerfil;
+
+  // Permissões e estado do perfil
+  final bool podeReceberTransferencias;
+  final bool carregandoPerfil;
+  final String? erroPerfil;
 
   // Nome do Firebase, senão o início do e-mail.
   String _nomeUsuario() {
@@ -70,6 +82,38 @@ class InicioPage extends StatelessWidget {
             descricao: 'Veja a lista completa de patrimônios.',
             onTap: onAbrirInventario,
           ),
+          if (carregandoPerfil) ...[
+            const SizedBox(height: 16),
+            const Center(
+              child: SizedBox(
+                height: 22,
+                width: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          ] else if (erroPerfil != null) ...[
+            const SizedBox(height: 16),
+            const Text(
+              'Não foi possível consultar suas permissões.',
+              style: TextStyle(color: AppCores.textoSecundario),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: onTentarCarregarPerfil,
+                child: const Text('Tentar novamente'),
+              ),
+            ),
+          ] else if (podeReceberTransferencias) ...[
+            const SizedBox(height: 12),
+            CardAcao(
+              icone: Icons.move_to_inbox_outlined,
+              titulo: 'Recebimentos',
+              descricao:
+                  'Confira transferências pendentes para sua secretaria.',
+              onTap: onAbrirRecebimentos,
+            ),
+          ],
         ],
       ),
     );

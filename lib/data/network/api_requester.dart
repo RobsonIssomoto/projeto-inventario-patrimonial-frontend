@@ -108,7 +108,7 @@ class ApiRequester {
       return Exception('Você não possui permissão para esta ação.');
     }
 
-    if (codigo == 400) {
+    if (codigo == 400 || codigo == 409) {
       final dados = erro.response?.data;
 
       if (dados is Map) {
@@ -119,7 +119,12 @@ class ApiRequester {
         }
       }
 
-      return Exception('Dados inválidos. Verifique as informações enviadas.');
+      return Exception(
+        codigo == 409
+            ? 'A operação não pode ser concluída no estado atual. '
+                  'Atualize a lista.'
+            : 'Dados inválidos. Verifique as informações enviadas.',
+      );
     }
 
     if (codigo == 404) {

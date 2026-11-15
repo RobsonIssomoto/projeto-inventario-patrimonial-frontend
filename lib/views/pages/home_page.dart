@@ -4,6 +4,8 @@ import 'package:projeto_inventario_patrimonial_frontend/views/pages/inicio_page.
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/inventario_page.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/profile_page.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/scanner_page.dart';
+import 'package:projeto_inventario_patrimonial_frontend/viewmodels/perfil_viewmodel.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/pages/recebimentos_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,20 +15,47 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final PerfilViewModel _perfilViewModel = PerfilViewModel();
+  @override
+  void initState() {
+    super.initState();
+    _carregarPerfil();
+  }
+
+  Future<void> _carregarPerfil() async {
+    if (_perfilViewModel.carregando) return;
+
+    final operacao = _perfilViewModel.carregar();
+
+    setState(() {});
+
+    await operacao;
+
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  void _abrirRecebimentos() {
+    if (!_perfilViewModel.podeReceberTransferencias) return;
+
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const RecebimentosPage()));
+  }
+
   static const int _abaInicio = 0;
   static const int _abaScanner = 1;
   static const int _abaInventario = 2;
 
   int _selectedIndex = _abaInicio;
 
-  // Abre o scanner em uma tela separada
   void _abrirScanner() {
     Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => const ScannerPreviewPage()));
   }
 
-  // Troca a aba que aparece no body.
   void _irParaAba(int aba) {
     setState(() {
       _selectedIndex = aba;
@@ -40,6 +69,11 @@ class _HomePageState extends State<HomePage> {
       InicioPage(
         onEscanear: _abrirScanner,
         onAbrirInventario: () => _irParaAba(_abaInventario),
+        onAbrirRecebimentos: _abrirRecebimentos,
+        podeReceberTransferencias: _perfilViewModel.podeReceberTransferencias,
+        carregandoPerfil: _perfilViewModel.carregando,
+        erroPerfil: _perfilViewModel.erro,
+        onTentarCarregarPerfil: _carregarPerfil,
       ),
 
       // 1 - Scanner abre em uma tela separada.
