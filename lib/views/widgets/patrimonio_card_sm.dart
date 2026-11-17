@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/widgets/foto_patrimonio.dart';
 
 class PatrimonioCardSm extends StatelessWidget {
   final Patrimonio patrimonio;
@@ -33,42 +34,8 @@ class PatrimonioCardSm extends StatelessWidget {
                 child: SizedBox(
                   width: 64,
                   height: 64,
-                  child: Builder(
-                    builder: (context) {
-                      final String? imagem = patrimonio.imagem;
-                      final nomeImagem = imagem?.trim() ?? '';
-
-                      // Sem imagem cadastrada: mostra o placeholder.
-                      if (nomeImagem.isEmpty) {
-                        return Container(
-                          color: Colors.grey.shade200,
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.hide_image_outlined,
-                            size: 26,
-                            color: Colors.grey,
-                          ),
-                        );
-                      }
-
-                      return Image.asset(
-                        'assets/images/$nomeImagem',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          // Arquivo inexistente ou inválido: mostra o placeholder.
-                          return Container(
-                            color: Colors.grey.shade200,
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.hide_image_outlined,
-                              size: 26,
-                              color: Colors.grey,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                  // Foto principal vinda da API (ou ícone de "sem foto")
+                  child: FotoPatrimonio(fotoId: patrimonio.fotoPrincipalId),
                 ),
               ),
               const SizedBox(width: 12),

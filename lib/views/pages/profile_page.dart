@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:projeto_inventario_patrimonial_frontend/repositories/usuario_repository.dart';
+import 'package:projeto_inventario_patrimonial_frontend/viewmodels/perfil_viewmodel.dart';
 
 import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/alterar_senha_page.dart';
@@ -18,7 +18,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final UsuarioRepository _usuarioRepository = UsuarioRepository();
+  // A tela não fala direto com o repositório: passa pelo ViewModel
+  final PerfilViewModel _viewModel = PerfilViewModel();
 
   bool _carregando = true;
   String _erro = '';
@@ -37,25 +38,15 @@ class _ProfilePageState extends State<ProfilePage> {
       _erro = '';
     });
 
-    try {
-      // Usa o ApiRequester (Dio), que já envia o token do Firebase
-      final dados = await _usuarioRepository.consultarUsuarioAtual();
+    await _viewModel.carregarDadosUsuario();
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      setState(() {
-        _usuario = dados;
-        _carregando = false;
-        _erro = '';
-      });
-    } catch (erro) {
-      if (!mounted) return;
-
-      setState(() {
-        _carregando = false;
-        _erro = erro.toString().replaceFirst('Exception: ', '');
-      });
-    }
+    setState(() {
+      _usuario = _viewModel.dadosUsuario;
+      _erro = _viewModel.erro ?? '';
+      _carregando = false;
+    });
   }
 
   Future<void> _sair() async {

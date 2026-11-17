@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>A câmera é usada para fotografar os patrimônios durante a conferência.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>A galeria é usada para anexar fotos dos patrimônios.</string>
 </dict>
 </plist>

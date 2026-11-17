@@ -3,6 +3,7 @@ import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
 import 'package:projeto_inventario_patrimonial_frontend/models/sala.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/transferencia_page.dart';
+import 'package:projeto_inventario_patrimonial_frontend/views/widgets/galeria_fotos_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/localizacao_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_resumo_card.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/widgets/patrimonio_validation_card.dart';
@@ -31,6 +32,10 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
   Sala? _salaNova;
 
   bool _salvando = false;
+
+  // Fica true quando o usuário envia, exclui ou troca a foto principal.
+  // Ao voltar, a lista é recarregada para mostrar a foto nova.
+  bool _fotosAlteradas = false;
 
   @override
   void initState() {
@@ -239,6 +244,19 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
 
   @override
   Widget build(BuildContext context) {
+    // PopScope: ao voltar (seta do topo ou botão "voltar" do celular),
+    // devolve se as fotos mudaram, para a lista recarregar.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.pop(context, _fotosAlteradas);
+      },
+      child: _tela(context),
+    );
+  }
+
+  Widget _tela(BuildContext context) {
     return Scaffold(
       backgroundColor: AppCores.fundo,
 
@@ -296,7 +314,14 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
                     // 1. DADOS PRINCIPAIS (somente leitura)
                     PatrimonioResumoCard(patrimonio: widget.patrimonio),
 
-                    // 2. LOCALIZAÇÃO (trocar sala / transferir secretaria)
+                    // 2. FOTOS (até 3; a principal aparece na lista)
+                    if (widget.patrimonio.id != null)
+                      GaleriaFotosCard(
+                        patrimonioId: widget.patrimonio.id!,
+                        onAlterado: () => _fotosAlteradas = true,
+                      ),
+
+                    // 3. LOCALIZAÇÃO (trocar sala / transferir secretaria)
                     LocalizacaoCard(
                       secretaria: widget.patrimonio.secretaria,
                       salaAtual: widget.patrimonio.sala,
@@ -310,7 +335,7 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
                       },
                     ),
 
-                    // 3. VALIDAÇÃO (conferência)
+                    // 4. VALIDAÇÃO (conferência)
                     PatrimonioValidationCard(
                       statusSelecionado: _statusSelecionado,
                       estadoSelecionado: _estadoSelecionado,
@@ -379,7 +404,9 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
             ),
             const SizedBox(height: 8),
             OutlinedButton(
-              onPressed: _salvando ? null : () => Navigator.pop(context),
+              onPressed: _salvando
+                  ? null
+                  : () => Navigator.pop(context, _fotosAlteradas),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 side: const BorderSide(color: AppCores.azul),

@@ -13,6 +13,9 @@ class Patrimonio {
   final String observacoes;
   final String? imagem;
 
+  // ID da foto principal (aparece no card da lista). null = sem foto.
+  final String? fotoPrincipalId;
+
   // Datas criadas automaticamente pela API (timestamps do MongoDB)
   final DateTime? cadastradoEm;
   final DateTime? atualizadoEm;
@@ -30,6 +33,7 @@ class Patrimonio {
     required this.estadoConservacao,
     required this.observacoes,
     this.imagem,
+    this.fotoPrincipalId,
     this.cadastradoEm,
     this.atualizadoEm,
   });
@@ -75,6 +79,16 @@ class Patrimonio {
       salaId = salaDados;
     }
 
+    // A API pode mandar só o ID da foto (String) ou o objeto da foto (Map)
+    final fotoDados = json['fotoPrincipal'];
+    String? fotoPrincipalId;
+
+    if (fotoDados is Map) {
+      fotoPrincipalId = fotoDados['_id'] as String?;
+    } else if (fotoDados is String) {
+      fotoPrincipalId = fotoDados;
+    }
+
     return Patrimonio(
       id: json['_id'] as String?,
       secretariaId: secretariaId,
@@ -88,6 +102,7 @@ class Patrimonio {
       estadoConservacao: json['estadoConservacao'] as String? ?? 'bom',
       observacoes: json['observacoes'] as String? ?? '',
       imagem: json['imagem'] as String?,
+      fotoPrincipalId: fotoPrincipalId,
       // tryParse devolve null se a data vier vazia ou inválida
       cadastradoEm: DateTime.tryParse(json['createdAt'] as String? ?? ''),
       atualizadoEm: DateTime.tryParse(json['updatedAt'] as String? ?? ''),
