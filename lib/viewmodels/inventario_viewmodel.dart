@@ -1,8 +1,11 @@
 import 'package:projeto_inventario_patrimonial_frontend/models/patrimonio.dart';
+import 'package:projeto_inventario_patrimonial_frontend/repositories/movimentacao_repository.dart';
 import 'package:projeto_inventario_patrimonial_frontend/repositories/patrimonio_repository.dart';
 
 class InventarioViewModel {
   final PatrimonioRepository _repository = PatrimonioRepository();
+  final MovimentacaoRepository _movimentacaoRepository =
+      MovimentacaoRepository();
 
   List<Patrimonio> _patrimonios = [];
 
@@ -72,6 +75,8 @@ class InventarioViewModel {
     return resultado;
   }
 
+  /// Salva a conferência e, se uma nova sala foi escolhida, a troca de sala.
+  /// As duas operações passam por /movimentacoes para gerar o histórico.
   Future<void> atualizarPatrimonio({
     required String id,
     required String status,
@@ -79,12 +84,18 @@ class InventarioViewModel {
     required String observacoes,
     String? salaId,
   }) async {
-    await _repository.atualizarPatrimonio(
-      id: id,
+    await _movimentacaoRepository.registrarConferencia(
+      patrimonioId: id,
       status: status,
       estadoConservacao: estadoConservacao,
       observacoes: observacoes,
-      salaId: salaId,
     );
+
+    if (salaId != null) {
+      await _movimentacaoRepository.atualizarLocalizacao(
+        patrimonioId: id,
+        salaDestinoId: salaId,
+      );
+    }
   }
 }

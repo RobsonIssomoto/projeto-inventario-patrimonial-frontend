@@ -23,4 +23,15 @@ class UsuarioService {
 
     return perfil;
   }
+
+  /// Retorna os dados completos do usuário autenticado (GET /usuarios/eu).
+  Future<Map<String, dynamic>> consultarUsuarioAtual() async {
+    final dados = await _requester.get('/usuarios/eu');
+
+    if (dados is! Map<String, dynamic>) {
+      throw Exception('A API retornou os dados do usuário em formato inválido.');
+    }
+
+    return dados;
+  }
 }

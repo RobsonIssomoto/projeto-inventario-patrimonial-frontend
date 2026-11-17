@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+
+import 'package:projeto_inventario_patrimonial_frontend/repositories/usuario_repository.dart';
 
 import 'package:projeto_inventario_patrimonial_frontend/views/cores.dart';
 import 'package:projeto_inventario_patrimonial_frontend/views/pages/alterar_senha_page.dart';
@@ -19,7 +18,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  static const String baseUrl = 'http://localhost:3000/api/v1';
+  final UsuarioRepository _usuarioRepository = UsuarioRepository();
 
   bool _carregando = true;
   String _erro = '';
@@ -39,59 +38,22 @@ class _ProfilePageState extends State<ProfilePage> {
     });
 
     try {
-      final usuarioFirebase = FirebaseAuth.instance.currentUser;
-
-      if (usuarioFirebase == null) {
-        if (!mounted) return;
-
-        setState(() {
-          _carregando = false;
-          _erro = 'Usuário não autenticado.';
-        });
-        return;
-      }
-
-      final token = await usuarioFirebase.getIdToken();
-
-      if (token == null || token.isEmpty) {
-        if (!mounted) return;
-
-        setState(() {
-          _carregando = false;
-          _erro = 'Não foi possível validar sua sessão. Entre novamente.';
-        });
-        return;
-      }
-
-      final resposta = await http.get(
-        Uri.parse('$baseUrl/usuarios/eu'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
+      // Usa o ApiRequester (Dio), que já envia o token do Firebase
+      final dados = await _usuarioRepository.consultarUsuarioAtual();
 
       if (!mounted) return;
 
-      if (resposta.statusCode == 200) {
-        final dados = jsonDecode(resposta.body);
-
-        setState(() {
-          _usuario = dados as Map<String, dynamic>;
-          _carregando = false;
-          _erro = '';
-        });
-      } else {
-        setState(() {
-          _carregando = false;
-          _erro = 'Não foi possível carregar o perfil.';
-        });
-      }
-    } catch (_) {
+      setState(() {
+        _usuario = dados;
+        _carregando = false;
+        _erro = '';
+      });
+    } catch (erro) {
       if (!mounted) return;
 
       setState(() {
         _carregando = false;
-        _erro =
-            'Não foi possível carregar o perfil. '
-            'Verifique a conexão e tente novamente.';
+        _erro = erro.toString().replaceFirst('Exception: ', '');
       });
     }
   }

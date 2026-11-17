@@ -78,4 +78,40 @@ class MovimentacaoService {
       dados: {'salaDestinoId': salaDestinoId},
     );
   }
+
+  /// Registra uma conferência (gera histórico e atualiza status/estado do bem).
+  Future<void> registrarConferencia({
+    required String patrimonioId,
+    required String status,
+    required String estadoConservacao,
+    required String observacoes,
+  }) async {
+    await _requester.post(
+      '/movimentacoes',
+      dados: {
+        'patrimonioId': patrimonioId,
+        'tipo': 'conferencia',
+        'dados': {
+          'status': status,
+          'estadoConservacao': estadoConservacao,
+          'observacoes': observacoes,
+        },
+      },
+    );
+  }
+
+  /// Troca o bem de sala dentro da mesma secretaria (gera histórico).
+  Future<void> atualizarLocalizacao({
+    required String patrimonioId,
+    required String salaDestinoId,
+  }) async {
+    await _requester.post(
+      '/movimentacoes',
+      dados: {
+        'patrimonioId': patrimonioId,
+        'tipo': 'atualizacao_localizacao',
+        'dados': {'salaDestino': salaDestinoId, 'motivo': 'Troca de sala'},
+      },
+    );
+  }
 }

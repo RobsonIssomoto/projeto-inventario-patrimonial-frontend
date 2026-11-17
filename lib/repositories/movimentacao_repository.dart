@@ -42,4 +42,28 @@ class MovimentacaoRepository {
       salaDestinoId: salaDestinoId,
     );
   }
+
+  Future<void> registrarConferencia({
+    required String patrimonioId,
+    required String status,
+    required String estadoConservacao,
+    required String observacoes,
+  }) {
+    return _service.registrarConferencia(
+      patrimonioId: patrimonioId,
+      status: status,
+      estadoConservacao: estadoConservacao,
+      observacoes: observacoes,
+    );
+  }
+
+  Future<void> atualizarLocalizacao({
+    required String patrimonioId,
+    required String salaDestinoId,
+  }) {
+    return _service.atualizarLocalizacao(
+      patrimonioId: patrimonioId,
+      salaDestinoId: salaDestinoId,
+    );
+  }
 }

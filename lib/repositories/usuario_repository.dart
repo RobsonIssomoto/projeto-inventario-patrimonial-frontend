@@ -9,4 +9,8 @@ class UsuarioRepository {
   Future<String> consultarPerfilAtual() {
     return _service.consultarPerfilAtual();
   }
+
+  Future<Map<String, dynamic>> consultarUsuarioAtual() {
+    return _service.consultarUsuarioAtual();
+  }
 }
