@@ -198,7 +198,10 @@ class _HistoricoMovimentacoesPageState
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _statusTransferencia(movimentacao.statusTransferencia),
+                    _statusTransferencia(
+                      movimentacao.statusTransferencia,
+                      movimentacao.tipo,
+                    ),
                   ],
                 ),
 
@@ -247,11 +250,14 @@ class _HistoricoMovimentacoesPageState
     );
   }
 
-  Widget _statusTransferencia(String? status) {
+  Widget _statusTransferencia(String? status, String tipo) {
     final String texto;
     final Color cor;
 
-    switch (status) {
+    // Normaliza o valor que veio da API (ex.: "Concluída" -> "concluida")
+    final valor = (status ?? '').trim().toLowerCase().replaceAll('í', 'i');
+
+    switch (valor) {
       case 'pendente':
         texto = 'Pendente';
         cor = Colors.orange.shade900;
@@ -264,11 +270,22 @@ class _HistoricoMovimentacoesPageState
         texto = 'Cancelada';
         cor = Colors.red.shade700;
         break;
+      case 'concluida':
+      case 'concluido':
+        texto = 'Concluída';
+        cor = Colors.blue.shade800;
+        break;
       default:
-        texto = 'Status não informado';
-        cor = Colors.grey.shade700;
+        // Conferências e trocas de sala nunca ficam pendentes.
+        // Registros antigos, gravados sem status, também contam como concluídos.
+        if (tipo != 'transferencia') {
+          texto = 'Concluída';
+          cor = Colors.blue.shade800;
+        } else {
+          texto = 'Status não informado';
+          cor = Colors.grey.shade700;
+        }
     }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
