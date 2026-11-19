@@ -72,9 +72,52 @@ class _HistoricoMovimentacoesPageState
       return '$nomeOrigem → $nomeDestino';
     }
 
+    if (movimentacao.tipo == 'conferencia') {
+      // Ex.: "Conferido · Bom · Tela riscada"
+      final partes = <String>[
+        _textoStatusConferencia(movimentacao.status),
+        _textoEstado(movimentacao.estadoConservacao),
+        if (movimentacao.observacoes?.isNotEmpty == true)
+          movimentacao.observacoes!,
+      ].where((parte) => parte.isNotEmpty).toList();
+
+      return partes.isEmpty ? 'Sem descrição' : partes.join(' · ');
+    }
+
     return movimentacao.observacoes?.isNotEmpty == true
         ? movimentacao.observacoes!
         : 'Sem descrição';
+  }
+
+  // Valores da API -> texto para o usuário
+  String _textoStatusConferencia(String? status) {
+    switch (status) {
+      case 'conferido':
+        return 'Conferido';
+      case 'pendente':
+        return 'Pendente';
+      case 'nao_localizado':
+        return 'Não localizado';
+      default:
+        return '';
+    }
+  }
+
+  String _textoEstado(String? estado) {
+    switch (estado) {
+      case 'novo':
+        return 'Novo';
+      case 'bom':
+        return 'Bom';
+      case 'regular':
+        return 'Regular';
+      case 'ruim':
+        return 'Ruim';
+      case 'inservivel':
+        return 'Inservível';
+      default:
+        return '';
+    }
   }
 
   Future<void> _cancelarTransferencia(String movimentacaoId) async {

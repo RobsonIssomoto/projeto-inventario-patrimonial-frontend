@@ -175,7 +175,7 @@ class _PatrimonioDetailState extends State<PatrimonioDetail> {
 
     try {
       await _inventarioViewModel.atualizarPatrimonio(
-        id: widget.patrimonio.id ?? '',
+        original: widget.patrimonio,
         status: _statusSelecionado,
         estadoConservacao: _estadoSelecionado,
         observacoes: _observacaoController.text.trim(),

@@ -75,21 +75,37 @@ class InventarioViewModel {
     return resultado;
   }
 
-  /// Salva a conferência e, se uma nova sala foi escolhida, a troca de sala.
-  /// As duas operações passam por /movimentacoes para gerar o histórico.
+  /// Salva o que o usuário fez na tela de detalhes.
+  ///
+  /// Regras (para não gerar cards repetidos no histórico):
+  /// - mudou só a sala -> registra só a troca de sala;
+  /// - mudou status, estado ou observação -> registra a conferência
+  ///   (e a troca de sala também, se a sala mudou);
+  /// - não mudou nada -> registra a conferência, porque o usuário
+  ///   está confirmando que viu o bem.
   Future<void> atualizarPatrimonio({
-    required String id,
+    required Patrimonio original,
     required String status,
     required String estadoConservacao,
     required String observacoes,
     String? salaId,
   }) async {
-    await _movimentacaoRepository.registrarConferencia(
-      patrimonioId: id,
-      status: status,
-      estadoConservacao: estadoConservacao,
-      observacoes: observacoes,
-    );
+    final id = original.id ?? '';
+    final vaiTrocarSala = salaId != null;
+
+    final conferenciaMudou =
+        status != original.status ||
+        estadoConservacao != original.estadoConservacao ||
+        observacoes != original.observacoes;
+
+    if (conferenciaMudou || !vaiTrocarSala) {
+      await _movimentacaoRepository.registrarConferencia(
+        patrimonioId: id,
+        status: status,
+        estadoConservacao: estadoConservacao,
+        observacoes: observacoes,
+      );
+    }
 
     if (salaId != null) {
       await _movimentacaoRepository.atualizarLocalizacao(
